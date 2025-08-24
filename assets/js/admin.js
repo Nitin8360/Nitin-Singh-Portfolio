@@ -5,12 +5,15 @@ class AdminPanel {
   constructor() {
     this.currentUser = null;
     this.currentSection = 'profile';
-    this.portfolioData = this.loadPortfolioData();
+    this.portfolioData = null; // Will be loaded asynchronously
     
     this.init();
   }
 
-  init() {
+  async init() {
+    // Load portfolio data first
+    this.portfolioData = await this.loadPortfolioData();
+    
     this.checkExistingSession();
     this.setupEventListeners();
     this.loadInitialData();
@@ -97,6 +100,9 @@ class AdminPanel {
     
     // Resume tabs
     this.setupResumeTabs();
+    
+    // Data export/import functionality
+    this.setupDataManagement();
     
     // Mobile menu functionality
     this.setupMobileMenu();
@@ -1242,27 +1248,75 @@ class AdminPanel {
     }
   }
 
-  loadPortfolioData() {
-    const saved = localStorage.getItem('portfolioData');
-    return saved ? JSON.parse(saved) : {
-      profile: {},
-      projects: [],
-      certificates: [],
-      memories: [],
-      education: [],
-      resumeExperience: [],
-      resumeSkills: [],
-      skills: [],
-      experience: [],
-      blog: []
-    };
+  async loadPortfolioData() {
+    try {
+      // Try to load from Firebase first
+      if (window.firebaseManager && window.firebaseManager.isInitialized) {
+        console.log('📥 Loading from Firebase...');
+        const firebaseData = await window.firebaseManager.loadFromFirebase();
+        
+        if (firebaseData) {
+          console.log('✅ Data loaded from Firebase');
+          return firebaseData;
+        }
+      }
+      
+      // Fallback to localStorage
+      console.log('📥 Loading from localStorage...');
+      const saved = localStorage.getItem('portfolioData');
+      return saved ? JSON.parse(saved) : {
+        profile: {},
+        projects: [],
+        certificates: [],
+        memories: [],
+        education: [],
+        resumeExperience: [],
+        resumeSkills: [],
+        skills: [],
+        experience: [],
+        blog: []
+      };
+    } catch (error) {
+      console.error('❌ Error loading portfolio data:', error);
+      return {
+        profile: {},
+        projects: [],
+        certificates: [],
+        memories: [],
+        education: [],
+        resumeExperience: [],
+        resumeSkills: [],
+        skills: [],
+        experience: [],
+        blog: []
+      };
+    }
   }
 
-  savePortfolioData() {
+  async savePortfolioData() {
     try {
       const dataString = JSON.stringify(this.portfolioData);
-      localStorage.setItem('portfolioData', dataString);
-      console.log('💾 Portfolio data saved to localStorage:', this.portfolioData);
+      
+      // Save to Firebase if available
+      if (window.firebaseManager && window.firebaseManager.isInitialized) {
+        console.log('💾 Saving to Firebase...');
+        const firebaseSaved = await window.firebaseManager.saveToFirebase(this.portfolioData);
+        
+        if (firebaseSaved) {
+          console.log('✅ Data saved to Firebase successfully');
+          this.showMessage('Data saved to cloud database!', 'success');
+        } else {
+          console.log('⚠️ Firebase save failed, using localStorage');
+          localStorage.setItem('portfolioData', dataString);
+          this.showMessage('Data saved locally (Firebase unavailable)', 'warning');
+        }
+      } else {
+        // Fallback to localStorage
+        localStorage.setItem('portfolioData', dataString);
+        console.log('💾 Data saved to localStorage only');
+        this.showMessage('Data saved locally', 'success');
+      }
+      
       console.log('📊 Data includes:');
       console.log('  - Education:', this.portfolioData.education?.length || 0, 'entries');
       console.log('  - Experience:', this.portfolioData.resumeExperience?.length || 0, 'entries');
@@ -1277,6 +1331,7 @@ class AdminPanel {
       }
     } catch (error) {
       console.error('❌ Error saving portfolio data:', error);
+      this.showMessage('Error saving data: ' + error.message, 'error');
     }
   }
   
@@ -1328,6 +1383,210 @@ class AdminPanel {
         closeMobileMenu();
       }
     });
+  }
+
+  // Data Management Functions
+  setupDataManagement() {
+    // Export Data Button
+    const exportBtn = document.getElementById('exportDataBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => this.exportData());
+    }
+
+    // Import Data Button and File Input
+    const importBtn = document.getElementById('importDataBtn');
+    const importFile = document.getElementById('importDataFile');
+    
+    if (importBtn) {
+      importBtn.addEventListener('click', () => {
+        if (importFile) {
+          importFile.click();
+        }
+      });
+    }
+
+    if (importFile) {
+      importFile.addEventListener('change', (e) => this.importData(e));
+    }
+
+    // Clear Data Button
+    const clearBtn = document.getElementById('clearDataBtn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => this.clearAllData());
+    }
+  }
+
+  exportData() {
+    try {
+      const data = this.loadPortfolioData();
+      if (!data || Object.keys(data).length === 0) {
+        this.showMessage('No data to export. Add some content first.', 'warning');
+        return;
+      }
+
+      // Add metadata to the export
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        exportedFrom: window.location.hostname || 'localhost',
+        version: '1.0',
+        data: data
+      };
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `portfolio-data-${new Date().toISOString().split('T')[0]}.json`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      this.showMessage('Portfolio data exported successfully!', 'success');
+      console.log('📦 Data exported:', exportData);
+    } catch (error) {
+      console.error('Export error:', error);
+      this.showMessage('Error exporting data: ' + error.message, 'error');
+    }
+  }
+
+  importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/json') {
+      this.showMessage('Please select a valid JSON file.', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        
+        // Validate the imported data structure
+        if (!importedData.data) {
+          throw new Error('Invalid data format. Missing data property.');
+        }
+
+        // Confirm import with user
+        const confirmMsg = `Import data exported on ${importedData.exportedAt ? new Date(importedData.exportedAt).toLocaleDateString() : 'unknown date'}?\n\nThis will replace all current data. This action cannot be undone.`;
+        
+        if (confirm(confirmMsg)) {
+          // Backup current data first
+          this.createBackup();
+          
+          // Import the data
+          localStorage.setItem('portfolioData', JSON.stringify(importedData.data));
+          this.portfolioData = importedData.data;
+          
+          // Reload the current section to show imported data
+          this.loadInitialData();
+          
+          this.showMessage('Portfolio data imported successfully!', 'success');
+          console.log('📥 Data imported:', importedData);
+        }
+      } catch (error) {
+        console.error('Import error:', error);
+        this.showMessage('Error importing data: ' + error.message, 'error');
+      }
+    };
+
+    reader.readAsText(file);
+    // Clear the file input
+    event.target.value = '';
+  }
+
+  createBackup() {
+    try {
+      const currentData = this.loadPortfolioData();
+      const backupKey = `portfolioBackup_${Date.now()}`;
+      localStorage.setItem(backupKey, JSON.stringify({
+        timestamp: new Date().toISOString(),
+        data: currentData
+      }));
+      
+      // Keep only last 5 backups to prevent storage bloat
+      this.cleanupOldBackups();
+      
+      console.log('💾 Backup created:', backupKey);
+    } catch (error) {
+      console.error('Backup error:', error);
+    }
+  }
+
+  cleanupOldBackups() {
+    try {
+      const backupKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('portfolioBackup_')) {
+          backupKeys.push({
+            key: key,
+            timestamp: parseInt(key.split('_')[1])
+          });
+        }
+      }
+
+      // Sort by timestamp and keep only the latest 5
+      backupKeys.sort((a, b) => b.timestamp - a.timestamp);
+      
+      if (backupKeys.length > 5) {
+        const toDelete = backupKeys.slice(5);
+        toDelete.forEach(backup => {
+          localStorage.removeItem(backup.key);
+          console.log('🗑️ Deleted old backup:', backup.key);
+        });
+      }
+    } catch (error) {
+      console.error('Backup cleanup error:', error);
+    }
+  }
+
+  clearAllData() {
+    const confirmMsg = 'Are you sure you want to clear ALL portfolio data?\n\nThis action cannot be undone and will remove:\n- Profile information\n- Projects\n- Resume data\n- Certificates\n- Memories\n- All other content';
+    
+    if (confirm(confirmMsg)) {
+      const doubleConfirm = 'This is your final warning!\n\nType "DELETE" to confirm permanent deletion of all data:';
+      const confirmation = prompt(doubleConfirm);
+      
+      if (confirmation === 'DELETE') {
+        // Create one final backup before clearing
+        this.createBackup();
+        
+        // Clear the data
+        localStorage.removeItem('portfolioData');
+        this.portfolioData = this.getDefaultPortfolioData();
+        
+        // Reload the interface
+        this.loadInitialData();
+        
+        this.showMessage('All portfolio data has been cleared.', 'success');
+        console.log('🗑️ All data cleared');
+      } else {
+        this.showMessage('Data deletion cancelled.', 'info');
+      }
+    }
+  }
+
+  getDefaultPortfolioData() {
+    return {
+      profile: {},
+      projects: [],
+      certificates: [],
+      memories: [],
+      education: [],
+      resumeExperience: [],
+      resumeSkills: [],
+      skills: [],
+      experience: [],
+      blog: []
+    };
   }
 }
 

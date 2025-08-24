@@ -73,18 +73,40 @@ class PortfolioDataManager {
     }
   }
 
-  loadAdminData() {
-    const adminData = localStorage.getItem('portfolioData');
-    console.log('Loading admin data:', adminData ? 'Found data' : 'No data found');
-    if (adminData) {
-      try {
-        const data = JSON.parse(adminData);
-        console.log('Parsed admin data:', data);
-        this.updatePortfolioElements(data);
-      } catch (error) {
-        console.error('Error parsing admin data:', error);
+  async loadAdminData() {
+    let data = null;
+    
+    // Try to load from Firebase first
+    if (window.firebaseManager && window.firebaseManager.isInitialized) {
+      console.log('📥 Loading portfolio data from Firebase...');
+      data = await window.firebaseManager.loadFromFirebase();
+      
+      if (data) {
+        console.log('✅ Portfolio data loaded from Firebase');
       }
     }
+    
+    // Fallback to localStorage if Firebase data is not available
+    if (!data) {
+      console.log('📥 Loading portfolio data from localStorage...');
+      const adminData = localStorage.getItem('portfolioData');
+      
+      if (adminData) {
+        try {
+          data = JSON.parse(adminData);
+          console.log('✅ Portfolio data loaded from localStorage');
+        } catch (error) {
+          console.error('❌ Error parsing admin data:', error);
+          return;
+        }
+      } else {
+        console.log('❌ No portfolio data found');
+        return;
+      }
+    }
+
+    console.log('📊 Updating portfolio elements with loaded data');
+    this.updatePortfolioElements(data);
   }
 
   updatePortfolioElements(data) {

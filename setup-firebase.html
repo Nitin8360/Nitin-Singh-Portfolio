@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Setup Helper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #4285f4;
+            background: #f8f9fa;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #4285f4;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #3367d6;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3e0;
+            color: #ef6c00;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .code-block {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Setup Helper</h1>
+        <p>This helper will guide you through setting up Firebase for your portfolio.</p>
+
+        <div class="step">
+            <h3>Step 1: Create Firebase Project</h3>
+            <p>1. <a href="https://console.firebase.google.com/" target="_blank">Open Firebase Console</a></p>
+            <p>2. Click "Create a project" or "Add project"</p>
+            <p>3. Enter project name: <strong>my-portfolio-db</strong></p>
+            <p>4. Disable Google Analytics (not needed for now)</p>
+            <p>5. Click "Create project"</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Set up Realtime Database</h3>
+            <p>1. In your Firebase project, click "Realtime Database" from the left menu</p>
+            <p>2. Click "Create Database"</p>
+            <p>3. Choose location closest to you</p>
+            <p>4. Select "Start in <strong>test mode</strong>"</p>
+            <p>5. Click "Done"</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Get Your Configuration</h3>
+            <p>1. Click the ⚙️ (Settings) icon and select "Project settings"</p>
+            <p>2. Scroll down to "Your apps" section</p>
+            <p>3. Click the web icon <strong>&lt;/&gt;</strong></p>
+            <p>4. Enter app name: <strong>Portfolio Admin</strong></p>
+            <p>5. Click "Register app"</p>
+            <p>6. Copy the configuration object (it will look like the example below)</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Paste Your Configuration Here</h3>
+            <p>Copy the Firebase config from the console and paste it here:</p>
+            <textarea id="firebaseConfig" rows="10" placeholder="Paste your Firebase configuration here...
+Example:
+const firebaseConfig = {
+  apiKey: 'AIzaSyC...',
+  authDomain: 'my-project.firebaseapp.com',
+  databaseURL: 'https://my-project-default-rtdb.firebaseio.com/',
+  projectId: 'my-project-id',
+  storageBucket: 'my-project.appspot.com',
+  messagingSenderId: '123456789',
+  appId: '1:123456789:web:abcdef123456'
+};"></textarea>
+            <button onclick="generateConfig()">Generate Firebase Config File</button>
+            <div id="output"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 5: Test Configuration</h3>
+            <button onclick="testFirebase()">Test Firebase Connection</button>
+            <div id="testOutput"></div>
+        </div>
+
+        <div class="step">
+            <h3>Alternative: Skip Firebase for Now</h3>
+            <p>If you're having trouble with Firebase, you can continue using localStorage for now:</p>
+            <button onclick="useLocalStorageOnly()">Continue with Local Storage</button>
+            <div class="warning">
+                <strong>Note:</strong> With localStorage, your data will only be available on the device where you enter it.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateConfig() {
+            const configText = document.getElementById('firebaseConfig').value;
+            const output = document.getElementById('output');
+            
+            if (!configText.trim()) {
+                output.innerHTML = '<div class="error">Please paste your Firebase configuration first!</div>';
+                return;
+            }
+
+            try {
+                // Extract the configuration object
+                let configMatch = configText.match(/const\s+firebaseConfig\s*=\s*({[\s\S]*?});/);
+                if (!configMatch) {
+                    configMatch = configText.match(/({[\s\S]*?})/);
+                }
+                
+                if (!configMatch) {
+                    throw new Error('Could not parse Firebase configuration');
+                }
+
+                const configObj = configMatch[1];
+                
+                // Generate the complete firebase-config.js file
+                const completeConfig = `/**
+ * Firebase Configuration for Portfolio
+ * Generated by Firebase Setup Helper
+ */
+
+const firebaseConfig = ${configObj};
+
+class FirebasePortfolioManager {
+  constructor() {
+    this.db = null;
+    this.isInitialized = false;
+    this.userId = 'portfolio-user';
+    this.initializeFirebase();
+  }
+
+  async initializeFirebase() {
+    try {
+      if (typeof firebase === 'undefined') {
+        console.log('⚠️ Firebase not loaded');
+        return;
+      }
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
+      this.db = firebase.database();
+      this.isInitialized = true;
+      
+      console.log('✅ Firebase initialized successfully');
+      
+    } catch (error) {
+      console.error('❌ Firebase initialization error:', error);
+      this.isInitialized = false;
+    }
+  }
+
+  async saveToFirebase(data) {
+    if (!this.isInitialized) {
+      localStorage.setItem('portfolioData', JSON.stringify(data));
+      return false;
+    }
+
+    try {
+      await this.db.ref(\`portfolios/\${this.userId}\`).set({
+        ...data,
+        lastUpdated: Date.now()
+      });
+
+      localStorage.setItem('portfolioData', JSON.stringify(data));
+      return true;
+    } catch (error) {
+      console.error('❌ Firebase save error:', error);
+      localStorage.setItem('portfolioData', JSON.stringify(data));
+      return false;
+    }
+  }
+
+  async loadFromFirebase() {
+    if (!this.isInitialized) {
+      const localData = localStorage.getItem('portfolioData');
+      return localData ? JSON.parse(localData) : null;
+    }
+
+    try {
+      const snapshot = await this.db.ref(\`portfolios/\${this.userId}\`).once('value');
+      const firebaseData = snapshot.val();
+
+      if (firebaseData) {
+        localStorage.setItem('portfolioData', JSON.stringify(firebaseData));
+        return firebaseData;
+      } else {
+        const localData = localStorage.getItem('portfolioData');
+        return localData ? JSON.parse(localData) : null;
+      }
+    } catch (error) {
+      console.error('❌ Firebase load error:', error);
+      const localData = localStorage.getItem('portfolioData');
+      return localData ? JSON.parse(localData) : null;
+    }
+  }
+}
+
+window.firebaseManager = new FirebasePortfolioManager();`;
+
+                output.innerHTML = `
+                    <div class="success">
+                        <h4>Configuration Generated Successfully! 🎉</h4>
+                        <p>Copy the content below and save it as <strong>assets/js/firebase-config.js</strong></p>
+                    </div>
+                    <div class="code-block">${completeConfig}</div>
+                    <button onclick="downloadConfig()">Download firebase-config.js</button>
+                `;
+
+                // Store the config for download
+                window.generatedConfig = completeConfig;
+
+            } catch (error) {
+                output.innerHTML = `<div class="error">Error parsing configuration: ${error.message}<br>Please make sure you pasted the complete Firebase config.</div>`;
+            }
+        }
+
+        function downloadConfig() {
+            if (!window.generatedConfig) return;
+            
+            const blob = new Blob([window.generatedConfig], { type: 'text/javascript' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'firebase-config.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function testFirebase() {
+            const output = document.getElementById('testOutput');
+            output.innerHTML = '<div>Testing Firebase connection...</div>';
+            
+            // Simple test - try to access Firebase
+            if (typeof firebase !== 'undefined') {
+                output.innerHTML = '<div class="success">✅ Firebase scripts loaded successfully!</div>';
+            } else {
+                output.innerHTML = '<div class="warning">⚠️ Firebase scripts not loaded. Make sure to include Firebase CDN in your HTML.</div>';
+            }
+        }
+
+        function useLocalStorageOnly() {
+            if (confirm('This will create a simplified version that only uses localStorage. Your data will not sync across devices. Continue?')) {
+                // Create a simple localStorage-only version
+                const simpleConfig = `/**
+ * Simple Local Storage Manager
+ * This version only uses localStorage (no Firebase)
+ */
+
+class SimplePortfolioManager {
+  constructor() {
+    this.isInitialized = true; // Always true for localStorage
+  }
+
+  async saveToFirebase(data) {
+    try {
+      localStorage.setItem('portfolioData', JSON.stringify(data));
+      return true;
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+      return false;
+    }
+  }
+
+  async loadFromFirebase() {
+    try {
+      const data = localStorage.getItem('portfolioData');
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+      return null;
+    }
+  }
+}
+
+window.firebaseManager = new SimplePortfolioManager();`;
+
+                const blob = new Blob([simpleConfig], { type: 'text/javascript' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'firebase-config.js';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                alert('Simple localStorage-only config downloaded! Replace your firebase-config.js with this file.');
+            }
+        }
+    </script>
+</body>
+</html>
