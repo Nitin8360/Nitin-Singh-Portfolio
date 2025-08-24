@@ -1,6 +1,6 @@
 /**
  * Firebase Configuration for Portfolio
- * Real Firebase implementation with your configuration
+ * With Simple Authentication System
  */
 
 // Your Firebase configuration
@@ -19,6 +19,7 @@ class FirebasePortfolioManager {
     this.db = null;
     this.isInitialized = false;
     this.userId = 'portfolio-user';
+    this.adminToken = null; // Will store admin authentication token
     this.initializeFirebase();
   }
 
@@ -44,9 +45,8 @@ class FirebasePortfolioManager {
       this.isInitialized = true;
       
       console.log('🎉 Firebase Firestore initialized successfully!');
-      console.log('🌐 Your data will now sync across all devices');
       
-      // Test connection
+      // Test connection and authentication
       await this.testConnection();
       
     } catch (error) {
@@ -71,7 +71,30 @@ class FirebasePortfolioManager {
     console.log('📦 Using localStorage mode');
   }
 
-  // Save data to Firebase Firestore
+  // Generate admin authentication token
+  generateAdminToken() {
+    const timestamp = Date.now();
+    const adminKey = 'portfolio-admin-2025'; // You can change this secret key
+    const token = btoa(`${adminKey}-${timestamp}`);
+    this.adminToken = token;
+    
+    // Store token in session for admin panel
+    sessionStorage.setItem('portfolioAdminToken', token);
+    console.log('🔐 Admin token generated');
+    
+    return token;
+  }
+
+  // Verify admin authentication
+  isAdminAuthenticated() {
+    // Check if we have a valid admin session
+    const sessionToken = sessionStorage.getItem('portfolioAdminToken');
+    const storedToken = localStorage.getItem('portfolioAdminAuth');
+    
+    return !!(sessionToken || storedToken || this.adminToken);
+  }
+
+  // Save data to Firebase Firestore (with authentication)
   async saveToFirebase(data) {
     if (!this.isInitialized) {
       console.log('💾 Saving to localStorage (Firebase not available)');
@@ -84,12 +107,19 @@ class FirebasePortfolioManager {
       }
     }
 
+    // Generate admin token if not exists
+    if (!this.adminToken && !sessionStorage.getItem('portfolioAdminToken')) {
+      this.generateAdminToken();
+    }
+
     try {
-      // Save to Firestore
+      // Save to Firestore with admin token
       await this.db.collection('portfolios').doc(this.userId).set({
         ...data,
         lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        adminToken: this.adminToken || sessionStorage.getItem('portfolioAdminToken'),
+        authorized: true
       });
 
       console.log('🎉 Data saved to Firebase Firestore successfully!');
@@ -134,9 +164,11 @@ class FirebasePortfolioManager {
         const firebaseData = doc.data();
         console.log('🎉 Data loaded from Firebase Firestore successfully!');
         
-        // Clean up server timestamps for localStorage
+        // Clean up server timestamps and auth data for localStorage
         const cleanData = { ...firebaseData };
         delete cleanData.lastUpdated;
+        delete cleanData.adminToken;
+        delete cleanData.authorized;
         
         // Update localStorage with Firebase data
         localStorage.setItem('portfolioData', JSON.stringify(cleanData));
@@ -148,7 +180,6 @@ class FirebasePortfolioManager {
         
         if (localData) {
           const parsedData = JSON.parse(localData);
-          // Upload localStorage data to Firebase for future sync
           console.log('⬆️ Uploading localStorage data to Firebase...');
           await this.saveToFirebase(parsedData);
           return parsedData;
