@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Debug Tool</h1>
+        <p>This tool will help debug your Firebase connection issues.</p>
+        
+        <div>
+            <button onclick="testFirebaseConnection()">🔍 Test Firebase Connection</button>
+            <button onclick="testFirestoreWrite()">💾 Test Firestore Write</button>
+            <button onclick="testFirestoreRead()">📖 Test Firestore Read</button>
+            <button onclick="clearLogs()">🧹 Clear Logs</button>
+        </div>
+        
+        <div id="logs" class="log">Click a button above to start testing...</div>
+    </div>
+
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhvt4uDRD6iTyLGPnsCkdzViK4zS0nUbM",
+            authDomain: "portfolio-cb6ec.firebaseapp.com",
+            projectId: "portfolio-cb6ec",
+            storageBucket: "portfolio-cb6ec.firebasestorage.app",
+            messagingSenderId: "8604173060",
+            appId: "1:8604173060:web:62f7a77e2c791bfc350651",
+            measurementId: "G-EJRXKFEVJF"
+        };
+
+        let db = null;
+        const userId = 'portfolio-user';
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : 
+                             type === 'error' ? 'error' : 
+                             type === 'warning' ? 'warning' : 'info';
+            
+            logs.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        // Initialize Firebase
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                log('✅ Firebase initialized successfully', 'success');
+            }
+        } catch (error) {
+            log('❌ Firebase initialization failed: ' + error.message, 'error');
+        }
+
+        async function testFirebaseConnection() {
+            log('🔍 Testing Firebase connection...', 'info');
+            
+            try {
+                if (!db) {
+                    throw new Error('Firebase not initialized');
+                }
+                
+                log('📊 Project ID: ' + firebaseConfig.projectId, 'info');
+                log('🌐 Auth Domain: ' + firebaseConfig.authDomain, 'info');
+                
+                // Test basic connection
+                const testRef = db.collection('test').doc('connection');
+                await testRef.get();
+                
+                log('✅ Firebase connection successful!', 'success');
+                
+            } catch (error) {
+                log('❌ Connection failed: ' + error.message, 'error');
+                log('❌ Error code: ' + error.code, 'error');
+                
+                if (error.code === 'permission-denied') {
+                    log('🚨 PERMISSION DENIED - Your Firestore rules are blocking access!', 'error');
+                    log('🔧 Fix: Go to Firebase Console > Firestore > Rules', 'warning');
+                    log('🔧 Add: allow read, write: if true;', 'warning');
+                }
+            }
+        }
+
+        async function testFirestoreWrite() {
+            log('💾 Testing Firestore write...', 'info');
+            
+            try {
+                if (!db) {
+                    throw new Error('Firebase not initialized');
+                }
+                
+                const testData = {
+                    message: 'Test write from debug tool',
+                    timestamp: Date.now(),
+                    authorized: true
+                };
+                
+                log('📤 Writing to collection: portfolios, document: ' + userId, 'info');
+                
+                const docRef = db.collection('portfolios').doc(userId);
+                await docRef.set(testData);
+                
+                log('✅ Write successful!', 'success');
+                log('🔗 Check data: https://console.firebase.google.com/project/portfolio-cb6ec/firestore/data', 'info');
+                
+            } catch (error) {
+                log('❌ Write failed: ' + error.message, 'error');
+                log('❌ Error code: ' + error.code, 'error');
+                
+                if (error.code === 'permission-denied') {
+                    log('🚨 WRITE PERMISSION DENIED!', 'error');
+                    log('🔧 Your Firestore rules are blocking writes', 'warning');
+                } else if (error.code === 'unavailable') {
+                    log('🌐 Firebase service unavailable - check internet', 'warning');
+                }
+            }
+        }
+
+        async function testFirestoreRead() {
+            log('📖 Testing Firestore read...', 'info');
+            
+            try {
+                if (!db) {
+                    throw new Error('Firebase not initialized');
+                }
+                
+                log('📥 Reading from collection: portfolios, document: ' + userId, 'info');
+                
+                const docRef = db.collection('portfolios').doc(userId);
+                const doc = await docRef.get();
+                
+                if (doc.exists) {
+                    log('✅ Read successful!', 'success');
+                    log('📊 Document data: ' + JSON.stringify(doc.data(), null, 2), 'success');
+                } else {
+                    log('📁 Document does not exist (this is normal for first time)', 'warning');
+                }
+                
+            } catch (error) {
+                log('❌ Read failed: ' + error.message, 'error');
+                log('❌ Error code: ' + error.code, 'error');
+                
+                if (error.code === 'permission-denied') {
+                    log('🚨 READ PERMISSION DENIED!', 'error');
+                }
+            }
+        }
+
+        // Auto-run connection test
+        setTimeout(testFirebaseConnection, 1000);
+    </script>
+</body>
+</html>

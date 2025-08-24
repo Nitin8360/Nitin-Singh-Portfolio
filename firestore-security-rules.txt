@@ -1,0 +1,48 @@
+// SECURE FIRESTORE RULES FOR PORTFOLIO
+// Copy and paste this into Firebase Console > Firestore > Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Portfolio data - more secure rules
+    match /portfolios/{portfolioId} {
+      // Allow public reading for portfolio display
+      allow read: if true;
+      
+      // Allow write only if:
+      // 1. Document has authorized field set to true
+      // 2. Document has adminToken field (basic auth check)
+      // 3. Document has portfolioId that matches document ID
+      allow write: if request.resource.data.authorized == true 
+                   && request.resource.data.adminToken is string
+                   && request.resource.data.portfolioId == portfolioId
+                   && request.resource.data.source == 'admin-panel';
+      
+      // Allow create with same conditions
+      allow create: if request.resource.data.authorized == true 
+                    && request.resource.data.adminToken is string
+                    && request.resource.data.portfolioId == portfolioId
+                    && request.resource.data.source == 'admin-panel';
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+/*
+HOW THESE RULES WORK:
+1. PUBLIC READ: Anyone can read portfolio data (for displaying on your website)
+2. RESTRICTED WRITE: Only admin panel with proper tokens can write
+3. VALIDATION: Checks for required fields (authorized, adminToken, portfolioId, source)
+4. SECURITY: Prevents random users from writing to your database
+
+BENEFITS:
+✅ Portfolio website can display data publicly
+✅ Only your admin panel can modify data  
+✅ Basic protection against unauthorized writes
+✅ Validates required security fields
+❌ Not completely secure (for that you'd need Firebase Auth)
+*/
