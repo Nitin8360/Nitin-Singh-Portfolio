@@ -78,19 +78,20 @@ function createBackupFirebaseManager() {
               const sizeKB = (obj.length * 3) / 4 / 1024; // Approximate base64 size in KB
               console.log(`🖼️ Found base64 image at ${path}, size: ${sizeKB.toFixed(1)}KB`);
               
-              // If image is too large, replace with placeholder
-              if (sizeKB > 100) { // 100KB limit for Firestore
-                console.log(`🗑️ Replacing large base64 image at ${path} with placeholder`);
-                return '[IMAGE_DATA_REMOVED]'; // Placeholder
+              // If image is too large, try to compress or use a smaller version
+              if (sizeKB > 200) { // 200KB limit for Firestore
+                console.log(`�️ Image too large at ${path}, using fallback`);
+                // Instead of removing, use a default project image
+                return './assets/images/project-1.jpg'; // Default fallback image
               }
               
-              return obj; // Keep smaller images
+              return obj; // Keep smaller images as base64
             }
             
             // Check for very long strings that might cause issues
-            if (obj.length > 50000) { // 50K character limit
+            if (obj.length > 100000) { // 100K character limit
               console.log(`🗑️ Truncating very long string at ${path}, length: ${obj.length}`);
-              return obj.substring(0, 50000) + '...[TRUNCATED]';
+              return obj.substring(0, 100000) + '...[TRUNCATED]';
             }
             
             return obj;
@@ -663,18 +664,65 @@ class AdminPanel {
       return;
     }
 
-    // Convert file to base64 data URL for storage
-    const reader = new FileReader();
-    const self = this;
-    reader.onload = function(e) {
-      const imageUrl = e.target.result;
-      callback(imageUrl);
+    // Convert and optimize image
+    this.optimizeImage(file, (optimizedImageUrl) => {
+      callback(optimizedImageUrl);
+    });
+  }
+
+  optimizeImage(file, callback) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      // Calculate new dimensions (max 800px width/height)
+      const MAX_SIZE = 800;
+      let { width, height } = img;
+      
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height = (height * MAX_SIZE) / width;
+          width = MAX_SIZE;
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width = (width * MAX_SIZE) / height;
+          height = MAX_SIZE;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Convert to base64 with compression
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+      
+      const sizeKB = (compressedDataUrl.length * 3) / 4 / 1024;
+      console.log(`🖼️ Image optimized: ${img.width}x${img.height} -> ${width}x${height}, size: ${sizeKB.toFixed(1)}KB`);
+      
+      callback(compressedDataUrl);
     };
-    reader.onerror = function() {
-      self.showMessage('Error reading image file. Please try again.', 'error');
-      callback(null);
+    
+    img.onerror = () => {
+      console.error('Error loading image for optimization');
+      // Fallback to original FileReader method
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        callback(e.target.result);
+      };
+      reader.onerror = function() {
+        console.error('Error reading image file');
+        callback(null);
+      };
+      reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
+    
+    // Create object URL for the image
+    img.src = URL.createObjectURL(file);
   }
 
   loadProjects() {

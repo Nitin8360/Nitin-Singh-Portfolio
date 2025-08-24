@@ -304,13 +304,29 @@ class PortfolioDataManager {
     li.setAttribute('data-filter-item', '');
     li.setAttribute('data-category', project.category);
 
+    // Handle image source - check for placeholders and use fallbacks
+    let imageSrc = project.image;
+    
+    // If image is a placeholder or invalid, use default
+    if (!imageSrc || 
+        imageSrc === '[IMAGE_DATA_REMOVED]' || 
+        imageSrc === 'undefined' || 
+        imageSrc.length < 10) {
+      imageSrc = './assets/images/project-1.jpg';
+      console.log(`🖼️ Using default image for project: ${project.title}`);
+    } else if (imageSrc.startsWith('data:image/')) {
+      console.log(`🖼️ Using base64 image for project: ${project.title}`);
+    } else {
+      console.log(`🖼️ Using custom image path for project: ${project.title}`);
+    }
+
     li.innerHTML = `
       <a href="${project.url || '#'}">
         <figure class="project-img">
           <div class="project-item-icon-box">
             <ion-icon name="eye-outline"></ion-icon>
           </div>
-          <img src="${project.image || './assets/images/project-1.jpg'}" alt="${project.title}" loading="lazy">
+          <img src="${imageSrc}" alt="${project.title}" loading="lazy" onerror="this.src='./assets/images/project-1.jpg'">
         </figure>
         <h3 class="project-title">${project.title}</h3>
         <p class="project-category">${project.category}</p>
