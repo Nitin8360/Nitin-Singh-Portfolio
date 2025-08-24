@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Rules Debugger</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            margin: 20px; 
+            background: #1a1a1a; 
+            color: #00ff00; 
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        button { 
+            background: #333; 
+            color: #00ff00; 
+            border: 1px solid #00ff00; 
+            padding: 10px 20px; 
+            margin: 10px; 
+            cursor: pointer; 
+            border-radius: 5px;
+        }
+        button:hover { background: #444; }
+        .log { 
+            background: #000; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border: 1px solid #333; 
+            height: 400px; 
+            overflow-y: auto; 
+            border-radius: 5px;
+        }
+        .timestamp { color: #888; }
+        .error { color: #ff4444; }
+        .success { color: #44ff44; }
+        .warning { color: #ffff44; }
+        .info { color: #4444ff; }
+        .rules-box {
+            background: #222;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Firebase Rules Debugger</h1>
+        <p>This tool will help us identify exactly what's wrong with your Firestore rules.</p>
+        
+        <div class="rules-box">
+            <h3>📋 ULTRA-SIMPLE RULES - Copy this to Firebase Console:</h3>
+            <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    allow read, write: if true;
+  }
+}</pre>
+            <p><strong>Firebase Console URL:</strong> <a href="https://console.firebase.google.com/project/portfolio-cb6ec/firestore/rules" target="_blank">Click Here</a></p>
+            
+            <h4>🚨 If rules still don't work, try this EMERGENCY ruleset:</h4>
+            <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+        </div>
+
+        <div>
+            <button onclick="testFullAccess()">🔓 Test Full Access Rules</button>
+            <button onclick="testPortfolioAccess()">📁 Test Portfolio-Only Rules</button>
+            <button onclick="testConnection()">🔍 Test Basic Connection</button>
+            <button onclick="testRulesUpdate()">⏰ Test Rules Update Status</button>
+            <button onclick="clearLog()">🗑️ Clear Log</button>
+        </div>
+
+        <div class="log" id="log"></div>
+
+        <div class="rules-box">
+            <h3>🛠️ Troubleshooting Steps:</h3>
+            <ol>
+                <li>Click "Firebase Console" link above</li>
+                <li>Go to Firestore → Rules</li>
+                <li>DELETE all existing rules</li>
+                <li>Copy the simple rules shown above</li>
+                <li>Click "Publish"</li>
+                <li>Wait 2-3 minutes</li>
+                <li>Come back and click "Test Full Access Rules"</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhvt4uDRD6iTyLGPnsCkdzViK4zS0nUbM",
+            authDomain: "portfolio-cb6ec.firebaseapp.com",
+            projectId: "portfolio-cb6ec",
+            storageBucket: "portfolio-cb6ec.firebasestorage.app",
+            messagingSenderId: "8604173060",
+            appId: "1:8604173060:web:62f7a77e2c791bfc350651",
+            measurementId: "G-EJRXKFEVJF"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function testConnection() {
+            log('🔍 Testing basic Firebase connection...', 'info');
+            try {
+                // Test if we can even connect to Firestore
+                const testRef = db.collection('test').doc('connection');
+                await testRef.get();
+                log('✅ Basic Firebase connection successful', 'success');
+            } catch (error) {
+                log(`❌ Basic connection failed: ${error.message}`, 'error');
+                log(`Error code: ${error.code}`, 'error');
+            }
+        }
+
+        async function testFullAccess() {
+            log('🔓 Testing with FULL ACCESS rules...', 'info');
+            log('Expected rules: allow read, write: if true;', 'warning');
+            
+            try {
+                // Test reading
+                log('📖 Testing READ access...', 'info');
+                const readRef = db.collection('portfolios').doc('portfolio-user');
+                const readDoc = await readRef.get();
+                log('✅ READ access successful', 'success');
+                log(`Document exists: ${readDoc.exists}`, 'info');
+
+                // Test writing
+                log('✍️ Testing WRITE access...', 'info');
+                const writeData = {
+                    testWrite: true,
+                    timestamp: Date.now(),
+                    rulesTest: 'full-access'
+                };
+                await readRef.set(writeData, { merge: true });
+                log('✅ WRITE access successful', 'success');
+                log('🎉 FULL ACCESS RULES ARE WORKING!', 'success');
+
+            } catch (error) {
+                log(`❌ Full access test failed: ${error.message}`, 'error');
+                log(`Error code: ${error.code}`, 'error');
+                if (error.code === 'permission-denied') {
+                    log('🚨 RULES NOT UPDATED YET!', 'error');
+                    log('Wait 2-3 minutes and try again', 'warning');
+                }
+            }
+        }
+
+        async function testPortfolioAccess() {
+            log('📁 Testing PORTFOLIO-ONLY access rules...', 'info');
+            
+            try {
+                // Test portfolio collection
+                const portfolioRef = db.collection('portfolios').doc('portfolio-user');
+                await portfolioRef.set({ test: 'portfolio-access', timestamp: Date.now() });
+                log('✅ Portfolio collection access successful', 'success');
+
+                // Test other collection (should fail)
+                try {
+                    const otherRef = db.collection('other').doc('test');
+                    await otherRef.set({ test: 'other-access' });
+                    log('⚠️ Other collection access successful (rules too open)', 'warning');
+                } catch (otherError) {
+                    log('✅ Other collection blocked (good security)', 'success');
+                }
+
+            } catch (error) {
+                log(`❌ Portfolio access test failed: ${error.message}`, 'error');
+                log(`Error code: ${error.code}`, 'error');
+            }
+        }
+
+        async function testRulesUpdate() {
+            log('⏰ Testing rules update status...', 'info');
+            
+            const tests = [
+                { name: 'Open Rules', collection: 'portfolios', doc: 'test-open' },
+                { name: 'Restricted Rules', collection: 'restricted', doc: 'test-restricted' }
+            ];
+
+            for (const test of tests) {
+                try {
+                    const ref = db.collection(test.collection).doc(test.doc);
+                    await ref.set({ test: test.name, timestamp: Date.now() });
+                    log(`✅ ${test.name}: Access allowed`, 'success');
+                } catch (error) {
+                    log(`❌ ${test.name}: Access denied (${error.code})`, 'error');
+                }
+            }
+        }
+
+        // Auto-run connection test on load
+        window.onload = () => {
+            log('🚀 Firebase Rules Debugger loaded', 'info');
+            log('Firebase project: portfolio-cb6ec', 'info');
+            setTimeout(testConnection, 1000);
+        };
+    </script>
+</body>
+</html>

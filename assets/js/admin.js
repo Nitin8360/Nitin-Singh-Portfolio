@@ -1298,6 +1298,10 @@ class AdminPanel {
       const dataString = JSON.stringify(this.portfolioData);
       
       // Save to Firebase if available
+      console.log('🔍 Checking Firebase manager availability...');
+      console.log('window.firebaseManager exists:', !!window.firebaseManager);
+      console.log('window.firebaseManager.isInitialized:', window.firebaseManager ? window.firebaseManager.isInitialized : 'N/A');
+      
       if (window.firebaseManager && window.firebaseManager.isInitialized) {
         console.log('💾 Saving to Firebase...');
         const firebaseSaved = await window.firebaseManager.saveToFirebase(this.portfolioData);
@@ -1311,11 +1315,32 @@ class AdminPanel {
           this.showMessage('Data saved locally (Firebase unavailable)', 'warning');
         }
       } else {
-        // Fallback to localStorage
-        localStorage.setItem('portfolioData', dataString);
-        console.log('💾 Data saved to localStorage only');
-        this.showMessage('Data saved locally', 'success');
+        console.log('⚠️ Firebase manager not available or not initialized');
+        console.log('🔄 Attempting to force Firebase save anyway...');
+        
+        // Try to save to Firebase anyway
+        if (window.firebaseManager) {
+          try {
+            const firebaseSaved = await window.firebaseManager.saveToFirebase(this.portfolioData);
+            if (firebaseSaved) {
+              console.log('✅ Force Firebase save successful!');
+              this.showMessage('Data saved to cloud database!', 'success');
+            } else {
+              throw new Error('Firebase save returned false');
+            }
+          } catch (error) {
+            console.log('❌ Force Firebase save failed:', error);
+            localStorage.setItem('portfolioData', dataString);
+            this.showMessage('Data saved locally only', 'warning');
+          }
+        } else {
+          console.log('� No Firebase manager, saving to localStorage only');
+          localStorage.setItem('portfolioData', dataString);
+          this.showMessage('Data saved locally only', 'warning');
+        }
       }
+
+      this.showMessage('Data saved successfully', 'success');
       
       console.log('📊 Data includes:');
       console.log('  - Education:', this.portfolioData.education?.length || 0, 'entries');

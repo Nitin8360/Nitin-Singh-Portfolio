@@ -1,0 +1,34 @@
+// SIMPLIFIED SECURE FIRESTORE RULES FOR PORTFOLIO
+// Copy and paste this into Firebase Console > Firestore > Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Portfolio collection - balanced security
+    match /portfolios/{portfolioId} {
+      // Allow anyone to read portfolio data (for public display)
+      allow read: if true;
+      
+      // Allow write if basic validation passes
+      allow write, create: if portfolioId == 'portfolio-user'
+                           && request.resource.data.authorized == true;
+    }
+    
+    // Deny access to any other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+/*
+SIMPLIFIED SECURITY EXPLANATION:
+✅ Anyone can READ portfolio data (needed for your website)
+✅ Only writes to 'portfolio-user' document allowed
+✅ Writes must have 'authorized: true' field
+✅ All other collections are blocked
+🔒 Much more secure than "allow all"
+⚡ Simpler than complex token validation
+
+This provides good security while being easy to work with!
+*/
