@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Test</title>
+</head>
+<body>
+    <h1>Firebase Loading Test</h1>
+    <div id="output">Loading...</div>
+
+    <!-- Firebase CDN (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <script>
+        console.log('🔍 Testing Firebase loading...');
+        
+        const output = document.getElementById('output');
+        
+        function updateOutput(message) {
+            console.log(message);
+            output.innerHTML += message + '<br>';
+        }
+        
+        updateOutput('📦 Script started');
+        updateOutput('typeof firebase: ' + typeof firebase);
+        updateOutput('typeof window.firebase: ' + typeof window.firebase);
+        
+        // Check if Firebase loaded
+        if (typeof firebase !== 'undefined') {
+            updateOutput('✅ Firebase loaded successfully!');
+            
+            // Test config
+            const firebaseConfig = {
+                apiKey: "AIzaSyBhvt4uDRD6iTyLGPnsCkdzViK4zS0nUbM",
+                authDomain: "portfolio-cb6ec.firebaseapp.com",
+                projectId: "portfolio-cb6ec",
+                storageBucket: "portfolio-cb6ec.firebasestorage.app",
+                messagingSenderId: "8604173060",
+                appId: "1:8604173060:web:62f7a77e2c791bfc350651",
+                measurementId: "G-EJRXKFEVJF"
+            };
+            
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                    updateOutput('✅ Firebase app initialized');
+                }
+                
+                const db = firebase.firestore();
+                updateOutput('✅ Firestore initialized');
+                
+                updateOutput('🎉 All Firebase components working!');
+            } catch (error) {
+                updateOutput('❌ Firebase initialization error: ' + error.message);
+            }
+        } else {
+            updateOutput('❌ Firebase not loaded');
+        }
+        
+        // Test after delay
+        setTimeout(() => {
+            updateOutput('<br>--- After 1 second ---');
+            updateOutput('typeof firebase: ' + typeof firebase);
+            
+            if (typeof firebase !== 'undefined') {
+                updateOutput('✅ Firebase available after delay');
+            } else {
+                updateOutput('❌ Firebase still not available');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

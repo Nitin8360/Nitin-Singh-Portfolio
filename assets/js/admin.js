@@ -1,5 +1,243 @@
 'use strict';
 
+// Firebase Configuration Backup
+function createBackupFirebaseManager() {
+  console.log('🚨 Creating backup Firebase manager...');
+  
+  if (typeof firebase === 'undefined') {
+    console.log('❌ Firebase not available, cannot create backup manager');
+    return false;
+  }
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyBhvt4uDRD6iTyLGPnsCkdzViK4zS0nUbM",
+    authDomain: "portfolio-cb6ec.firebaseapp.com",
+    projectId: "portfolio-cb6ec",
+    storageBucket: "portfolio-cb6ec.firebasestorage.app",
+    messagingSenderId: "8604173060",
+    appId: "1:8604173060:web:62f7a77e2c791bfc350651",
+    measurementId: "G-EJRXKFEVJF"
+  };
+  
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    
+    const db = firebase.firestore();
+    const userId = 'portfolio-user';
+    
+    const backupManager = {
+      db: db,
+      userId: userId,
+      isInitialized: true,
+      
+      async saveToFirebase(data) {
+        try {
+          console.log('💾 Starting Firebase save...');
+          console.log('📊 Data to save:', data);
+          console.log('📊 Data type:', typeof data);
+          console.log('📊 Data keys:', Object.keys(data || {}));
+          
+          // Clean data for Firestore compatibility
+          const cleanData = this.cleanDataForFirestore(data);
+          
+          console.log('📤 About to save cleaned data to Firestore...');
+          console.log('📊 Cleaned data keys:', Object.keys(cleanData || {}));
+          
+          const docRef = this.db.collection('portfolios').doc(this.userId);
+          await docRef.set({
+            ...cleanData,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: Date.now()
+          });
+          console.log('✅ Backup Firebase save successful');
+          return true;
+        } catch (error) {
+          console.error('❌ Backup Firebase save failed:', error);
+          console.error('❌ Error details:', error.message);
+          console.error('❌ Error code:', error.code);
+          return false;
+        }
+      },
+      
+      cleanDataForFirestore(data) {
+        console.log('🧹 Cleaning data for Firestore compatibility...');
+        console.log('📊 Original data type:', typeof data);
+        console.log('📊 Original data keys:', Object.keys(data || {}));
+        
+        const cleanObject = (obj, path = 'root') => {
+          if (obj === null || obj === undefined) {
+            return obj;
+          }
+          
+          // Handle strings - check for base64 image data
+          if (typeof obj === 'string') {
+            // Check if it's a base64 data URL (images)
+            if (obj.startsWith('data:image/') && obj.includes('base64,')) {
+              const sizeKB = (obj.length * 3) / 4 / 1024; // Approximate base64 size in KB
+              console.log(`🖼️ Found base64 image at ${path}, size: ${sizeKB.toFixed(1)}KB`);
+              
+              // If image is too large, replace with placeholder
+              if (sizeKB > 100) { // 100KB limit for Firestore
+                console.log(`🗑️ Replacing large base64 image at ${path} with placeholder`);
+                return '[IMAGE_DATA_REMOVED]'; // Placeholder
+              }
+              
+              return obj; // Keep smaller images
+            }
+            
+            // Check for very long strings that might cause issues
+            if (obj.length > 50000) { // 50K character limit
+              console.log(`🗑️ Truncating very long string at ${path}, length: ${obj.length}`);
+              return obj.substring(0, 50000) + '...[TRUNCATED]';
+            }
+            
+            return obj;
+          }
+          
+          // Handle other primitive types
+          if (typeof obj === 'number' || typeof obj === 'boolean') {
+            return obj;
+          }
+          
+          if (Array.isArray(obj)) {
+            console.log(`🔍 Cleaning array at ${path} with ${obj.length} items`);
+            const cleanedArray = [];
+            
+            for (let i = 0; i < obj.length; i++) {
+              const item = obj[i];
+              const cleanedItem = cleanObject(item, `${path}[${i}]`);
+              
+              if (cleanedItem !== undefined && cleanedItem !== null) {
+                cleanedArray.push(cleanedItem);
+              } else {
+                console.log(`🗑️ Removed invalid item at ${path}[${i}]:`, typeof item);
+              }
+            }
+            
+            return cleanedArray;
+          }
+          
+          if (typeof obj === 'object') {
+            // Check for problematic object types
+            if (obj instanceof File) {
+              console.log(`🗑️ Removing File object at ${path}:`, obj.name);
+              return undefined;
+            }
+            
+            if (obj instanceof HTMLElement) {
+              console.log(`🗑️ Removing HTMLElement at ${path}:`, obj.tagName);
+              return undefined;
+            }
+            
+            if (obj instanceof Event || obj instanceof FileReader) {
+              console.log(`🗑️ Removing ${obj.constructor.name} at ${path}`);
+              return undefined;
+            }
+            
+            // Check for circular references or complex objects
+            if (obj.constructor && obj.constructor.name !== 'Object') {
+              console.log(`� Complex object at ${path}:`, obj.constructor.name);
+              
+              // Skip problematic constructors
+              if (['FileReader', 'File', 'Blob', 'ArrayBuffer', 'DataView'].includes(obj.constructor.name)) {
+                console.log(`🗑️ Removing ${obj.constructor.name} at ${path}`);
+                return undefined;
+              }
+            }
+            
+            const cleaned = {};
+            let hasValidProperties = false;
+            
+            for (const [key, value] of Object.entries(obj)) {
+              // Skip function properties
+              if (typeof value === 'function') {
+                console.log(`🗑️ Skipping function property ${path}.${key}`);
+                continue;
+              }
+              
+              const cleanedValue = cleanObject(value, `${path}.${key}`);
+              
+              if (cleanedValue !== undefined) {
+                cleaned[key] = cleanedValue;
+                hasValidProperties = true;
+              }
+            }
+            
+            return hasValidProperties ? cleaned : undefined;
+          }
+          
+          if (typeof obj === 'function') {
+            console.log(`🗑️ Removing function at ${path}`);
+            return undefined;
+          }
+          
+          // For any other type, log and remove
+          console.log(`🗑️ Removing unknown type at ${path}:`, typeof obj);
+          return undefined;
+        };
+        
+        const result = cleanObject(data);
+        console.log('✅ Data cleaning complete');
+        console.log('📊 Cleaned data keys:', Object.keys(result || {}));
+        
+        return result;
+      },
+      
+      async loadFromFirebase() {
+        try {
+          const docRef = this.db.collection('portfolios').doc(this.userId);
+          const doc = await docRef.get();
+          
+          if (doc.exists) {
+            const data = doc.data();
+            delete data.lastUpdated;
+            delete data.timestamp;
+            console.log('✅ Backup Firebase load successful');
+            return data;
+          }
+          return null;
+        } catch (error) {
+          console.error('❌ Backup Firebase load failed:', error);
+          return null;
+        }
+      },
+      
+      async loadAdminData() {
+        console.log('🔄 Loading admin data via backup manager');
+        try {
+          const data = await this.loadFromFirebase();
+          console.log('📊 Admin data loaded:', data ? 'success' : 'no data');
+          return data;
+        } catch (error) {
+          console.error('❌ Error in loadAdminData:', error);
+          return null;
+        }
+      },
+      
+      getStatus() {
+        return {
+          initialized: true,
+          connected: true,
+          mode: 'Backup Firebase Manager',
+          projectId: firebaseConfig.projectId,
+          userId: this.userId
+        };
+      }
+    };
+    
+    window.firebaseManager = backupManager;
+    window.portfolioDataManager = backupManager;
+    
+    console.log('✅ Backup Firebase manager created successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Error creating backup Firebase manager:', error);
+    return false;
+  }
+}
+
 // Admin Panel JavaScript
 class AdminPanel {
   constructor() {
@@ -1250,10 +1488,12 @@ class AdminPanel {
 
   async loadPortfolioData() {
     try {
-      // Try to load from Firebase first
-      if (window.firebaseManager && window.firebaseManager.isInitialized) {
+      // Wait for Firebase manager to be available with retry logic
+      const firebaseManager = await this.waitForFirebaseManager();
+      
+      if (firebaseManager && firebaseManager.isInitialized) {
         console.log('📥 Loading from Firebase...');
-        const firebaseData = await window.firebaseManager.loadFromFirebase();
+        const firebaseData = await firebaseManager.loadFromFirebase();
         
         if (firebaseData) {
           console.log('✅ Data loaded from Firebase');
@@ -1293,16 +1533,65 @@ class AdminPanel {
     }
   }
 
+  // New method to wait for Firebase manager with retry logic
+  async waitForFirebaseManager(maxAttempts = 5, delay = 1000) {
+    console.log('🔄 Waiting for Firebase manager...');
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`🔍 Attempt ${attempt}/${maxAttempts} - Checking Firebase manager...`);
+      
+      if (window.firebaseManager && window.firebaseManager.isInitialized) {
+        console.log('✅ Firebase manager is ready!');
+        return window.firebaseManager;
+      }
+      
+      // Try to manually initialize if available
+      if (window.initializeFirebaseManager) {
+        console.log('🔧 Trying manual Firebase initialization...');
+        try {
+          const success = window.initializeFirebaseManager();
+          if (success && window.firebaseManager && window.firebaseManager.isInitialized) {
+            console.log('✅ Manual initialization successful!');
+            return window.firebaseManager;
+          }
+        } catch (error) {
+          console.log('⚠️ Manual initialization failed:', error.message);
+        }
+      }
+      
+      // Try backup Firebase manager
+      if (attempt === maxAttempts && typeof createBackupFirebaseManager === 'function') {
+        console.log('🚨 Trying backup Firebase manager...');
+        try {
+          const success = createBackupFirebaseManager();
+          if (success && window.firebaseManager && window.firebaseManager.isInitialized) {
+            console.log('✅ Backup Firebase manager successful!');
+            return window.firebaseManager;
+          }
+        } catch (error) {
+          console.log('⚠️ Backup Firebase manager failed:', error.message);
+        }
+      }
+      
+      if (attempt < maxAttempts) {
+        console.log(`⏰ Waiting ${delay}ms before next attempt...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    console.log('⚠️ Firebase manager not available after all attempts');
+    return null;
+  }
+
   async savePortfolioData() {
     try {
       const dataString = JSON.stringify(this.portfolioData);
       
-      // Save to Firebase if available
+      // Wait for Firebase manager with retry logic
       console.log('🔍 Checking Firebase manager availability...');
-      console.log('window.firebaseManager exists:', !!window.firebaseManager);
-      console.log('window.firebaseManager.isInitialized:', window.firebaseManager ? window.firebaseManager.isInitialized : 'N/A');
+      const firebaseManager = await this.waitForFirebaseManager(3, 500); // Shorter wait for saves
       
-      if (window.firebaseManager && window.firebaseManager.isInitialized) {
+      if (firebaseManager && firebaseManager.isInitialized) {
         console.log('💾 Saving to Firebase...');
         const firebaseSaved = await window.firebaseManager.saveToFirebase(this.portfolioData);
         
