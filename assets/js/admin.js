@@ -95,6 +95,9 @@ class AdminPanel {
     // Action buttons
     this.setupActionButtons();
     
+    // Resume tabs
+    this.setupResumeTabs();
+    
     // Mobile menu functionality
     this.setupMobileMenu();
   }
@@ -188,6 +191,22 @@ class AdminPanel {
       e.preventDefault();
       this.saveMemory(e);
     });
+
+    // Resume forms
+    document.getElementById('educationForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.saveEducation(e);
+    });
+
+    document.getElementById('resumeExperienceForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.saveResumeExperience(e);
+    });
+
+    document.getElementById('skillForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.saveSkill(e);
+    });
   }
 
   setupActionButtons() {
@@ -203,6 +222,29 @@ class AdminPanel {
     document.getElementById('addMemoryBtn').addEventListener('click', () => {
       this.openMemoryModal();
     });
+
+    // Resume buttons
+    document.getElementById('addEducationBtn').addEventListener('click', () => {
+      this.openEducationModal();
+    });
+
+    document.getElementById('addExperienceBtn').addEventListener('click', () => {
+      this.openResumeExperienceModal();
+    });
+
+    document.getElementById('addSkillBtn').addEventListener('click', () => {
+      this.openSkillModal();
+    });
+
+    // Skill level slider
+    const skillLevelSlider = document.getElementById('skillLevel');
+    const skillLevelValue = document.getElementById('skillLevelValue');
+    
+    if (skillLevelSlider && skillLevelValue) {
+      skillLevelSlider.addEventListener('input', (e) => {
+        skillLevelValue.textContent = e.target.value;
+      });
+    }
   }
 
   handleLogin(e) {
@@ -288,6 +330,9 @@ class AdminPanel {
         break;
       case 'memories':
         this.loadMemories();
+        break;
+      case 'resume':
+        this.loadResume();
         break;
       case 'skills':
         this.loadSkills();
@@ -808,6 +853,352 @@ class AdminPanel {
     blogList.innerHTML = '<p class="text-center">Blog management coming soon...</p>';
   }
 
+  // Resume Management Methods
+  setupResumeTabs() {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const targetTab = e.target.getAttribute('data-tab');
+        this.switchResumeTab(targetTab);
+      });
+    });
+  }
+
+  switchResumeTab(tab) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    document.getElementById(`${tab}-tab`).classList.add('active');
+
+    // Load tab data
+    switch(tab) {
+      case 'education':
+        this.loadEducation();
+        break;
+      case 'experience':
+        this.loadResumeExperience();
+        break;
+      case 'skills':
+        this.loadResumeSkills();
+        break;
+    }
+  }
+
+  loadResume() {
+    // Load the currently active tab
+    const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
+    this.switchResumeTab(activeTab || 'education');
+  }
+
+  // Education Methods
+  loadEducation() {
+    const educationList = document.getElementById('educationList');
+    const education = this.portfolioData.education || [];
+
+    educationList.innerHTML = education.map(edu => `
+      <div class="resume-item" data-id="${edu.id}">
+        <div class="resume-item-icon">🎓</div>
+        <div class="resume-item-content">
+          <h4 class="resume-item-title">${edu.title}</h4>
+          ${edu.institution ? `<p class="resume-item-subtitle">${edu.institution}</p>` : ''}
+          <p class="resume-item-date">${edu.startYear} — ${edu.endYear}</p>
+          ${edu.description ? `<p class="resume-item-description">${edu.description}</p>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-warning btn-sm" onclick="adminPanel.editEducation(${edu.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="adminPanel.deleteEducation(${edu.id})">Delete</button>
+        </div>
+      </div>
+    `).join('') || '<p class="text-center">No education entries added yet.</p>';
+  }
+
+  openEducationModal(education = null) {
+    const modal = document.getElementById('educationModal');
+    const form = document.getElementById('educationForm');
+    const title = document.getElementById('educationModalTitle');
+
+    if (education) {
+      title.textContent = 'Edit Education';
+      form.elements.title.value = education.title;
+      form.elements.institution.value = education.institution || '';
+      form.elements.startYear.value = education.startYear;
+      form.elements.endYear.value = education.endYear;
+      form.elements.description.value = education.description || '';
+      form.setAttribute('data-editing', education.id);
+    } else {
+      title.textContent = 'Add Education';
+      form.reset();
+      form.removeAttribute('data-editing');
+    }
+
+    modal.classList.add('active');
+  }
+
+  saveEducation(e) {
+    const formData = new FormData(e.target);
+    const educationData = {
+      title: formData.get('title'),
+      institution: formData.get('institution'),
+      startYear: parseInt(formData.get('startYear')),
+      endYear: parseInt(formData.get('endYear')),
+      description: formData.get('description')
+    };
+
+    const editingId = e.target.getAttribute('data-editing');
+
+    if (editingId) {
+      // Edit existing education
+      const eduIndex = this.portfolioData.education.findIndex(e => e.id == editingId);
+      if (eduIndex !== -1) {
+        this.portfolioData.education[eduIndex] = {
+          ...this.portfolioData.education[eduIndex],
+          ...educationData
+        };
+      }
+    } else {
+      // Add new education
+      const newEducation = {
+        id: Date.now(),
+        ...educationData
+      };
+      
+      if (!this.portfolioData.education) {
+        this.portfolioData.education = [];
+      }
+      this.portfolioData.education.push(newEducation);
+    }
+
+    this.savePortfolioData();
+    this.loadEducation();
+    this.closeAllModals();
+    this.showMessage(`Education ${editingId ? 'updated' : 'added'} successfully!`, 'success');
+  }
+
+  editEducation(id) {
+    const education = this.portfolioData.education.find(e => e.id == id);
+    if (education) {
+      this.openEducationModal(education);
+    }
+  }
+
+  deleteEducation(id) {
+    if (confirm('Are you sure you want to delete this education entry?')) {
+      this.portfolioData.education = this.portfolioData.education.filter(e => e.id != id);
+      this.savePortfolioData();
+      this.loadEducation();
+      this.showMessage('Education deleted successfully!', 'success');
+    }
+  }
+
+  // Resume Experience Methods
+  loadResumeExperience() {
+    const experienceList = document.getElementById('resumeExperienceList');
+    const experience = this.portfolioData.resumeExperience || [];
+
+    experienceList.innerHTML = experience.map(exp => `
+      <div class="resume-item" data-id="${exp.id}">
+        <div class="resume-item-icon">💼</div>
+        <div class="resume-item-content">
+          <h4 class="resume-item-title">${exp.title}</h4>
+          ${exp.company ? `<p class="resume-item-subtitle">${exp.company}</p>` : ''}
+          <p class="resume-item-date">${exp.startYear} — ${exp.endYear}</p>
+          ${exp.description ? `<p class="resume-item-description">${exp.description}</p>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-warning btn-sm" onclick="adminPanel.editResumeExperience(${exp.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="adminPanel.deleteResumeExperience(${exp.id})">Delete</button>
+        </div>
+      </div>
+    `).join('') || '<p class="text-center">No experience entries added yet.</p>';
+  }
+
+  openResumeExperienceModal(experience = null) {
+    const modal = document.getElementById('resumeExperienceModal');
+    const form = document.getElementById('resumeExperienceForm');
+    const title = document.getElementById('resumeExperienceModalTitle');
+
+    if (experience) {
+      title.textContent = 'Edit Experience';
+      form.elements.title.value = experience.title;
+      form.elements.company.value = experience.company || '';
+      form.elements.startYear.value = experience.startYear;
+      form.elements.endYear.value = experience.endYear;
+      form.elements.description.value = experience.description || '';
+      form.setAttribute('data-editing', experience.id);
+    } else {
+      title.textContent = 'Add Experience';
+      form.reset();
+      form.removeAttribute('data-editing');
+    }
+
+    modal.classList.add('active');
+  }
+
+  saveResumeExperience(e) {
+    const formData = new FormData(e.target);
+    const experienceData = {
+      title: formData.get('title'),
+      company: formData.get('company'),
+      startYear: parseInt(formData.get('startYear')),
+      endYear: formData.get('endYear'), // Keep as string to allow "Present"
+      description: formData.get('description')
+    };
+
+    const editingId = e.target.getAttribute('data-editing');
+
+    if (editingId) {
+      // Edit existing experience
+      const expIndex = this.portfolioData.resumeExperience.findIndex(e => e.id == editingId);
+      if (expIndex !== -1) {
+        this.portfolioData.resumeExperience[expIndex] = {
+          ...this.portfolioData.resumeExperience[expIndex],
+          ...experienceData
+        };
+      }
+    } else {
+      // Add new experience
+      const newExperience = {
+        id: Date.now(),
+        ...experienceData
+      };
+      
+      if (!this.portfolioData.resumeExperience) {
+        this.portfolioData.resumeExperience = [];
+      }
+      this.portfolioData.resumeExperience.push(newExperience);
+    }
+
+    this.savePortfolioData();
+    this.loadResumeExperience();
+    this.closeAllModals();
+    this.showMessage(`Experience ${editingId ? 'updated' : 'added'} successfully!`, 'success');
+  }
+
+  editResumeExperience(id) {
+    const experience = this.portfolioData.resumeExperience.find(e => e.id == id);
+    if (experience) {
+      this.openResumeExperienceModal(experience);
+    }
+  }
+
+  deleteResumeExperience(id) {
+    if (confirm('Are you sure you want to delete this experience entry?')) {
+      this.portfolioData.resumeExperience = this.portfolioData.resumeExperience.filter(e => e.id != id);
+      this.savePortfolioData();
+      this.loadResumeExperience();
+      this.showMessage('Experience deleted successfully!', 'success');
+    }
+  }
+
+  // Resume Skills Methods
+  loadResumeSkills() {
+    const skillsList = document.getElementById('resumeSkillsList');
+    const skills = this.portfolioData.resumeSkills || [];
+
+    skillsList.innerHTML = skills.map(skill => `
+      <div class="resume-item" data-id="${skill.id}">
+        <div class="resume-item-icon">⚡</div>
+        <div class="resume-item-content">
+          <h4 class="resume-item-title">${skill.name}</h4>
+          ${skill.category ? `<p class="resume-item-subtitle">${skill.category}</p>` : ''}
+          <div class="skill-progress">
+            <div class="skill-progress-fill" style="width: ${skill.level}%;"></div>
+          </div>
+          <p class="resume-item-date">${skill.level}%</p>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-warning btn-sm" onclick="adminPanel.editSkill(${skill.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="adminPanel.deleteSkill(${skill.id})">Delete</button>
+        </div>
+      </div>
+    `).join('') || '<p class="text-center">No skills added yet.</p>';
+  }
+
+  openSkillModal(skill = null) {
+    const modal = document.getElementById('skillModal');
+    const form = document.getElementById('skillForm');
+    const title = document.getElementById('skillModalTitle');
+    const levelSlider = document.getElementById('skillLevel');
+    const levelValue = document.getElementById('skillLevelValue');
+
+    if (skill) {
+      title.textContent = 'Edit Skill';
+      form.elements.name.value = skill.name;
+      form.elements.level.value = skill.level;
+      form.elements.category.value = skill.category || '';
+      levelValue.textContent = skill.level;
+      form.setAttribute('data-editing', skill.id);
+    } else {
+      title.textContent = 'Add Skill';
+      form.reset();
+      levelSlider.value = 50;
+      levelValue.textContent = '50';
+      form.removeAttribute('data-editing');
+    }
+
+    modal.classList.add('active');
+  }
+
+  saveSkill(e) {
+    const formData = new FormData(e.target);
+    const skillData = {
+      name: formData.get('name'),
+      level: parseInt(formData.get('level')),
+      category: formData.get('category')
+    };
+
+    const editingId = e.target.getAttribute('data-editing');
+
+    if (editingId) {
+      // Edit existing skill
+      const skillIndex = this.portfolioData.resumeSkills.findIndex(s => s.id == editingId);
+      if (skillIndex !== -1) {
+        this.portfolioData.resumeSkills[skillIndex] = {
+          ...this.portfolioData.resumeSkills[skillIndex],
+          ...skillData
+        };
+      }
+    } else {
+      // Add new skill
+      const newSkill = {
+        id: Date.now(),
+        ...skillData
+      };
+      
+      if (!this.portfolioData.resumeSkills) {
+        this.portfolioData.resumeSkills = [];
+      }
+      this.portfolioData.resumeSkills.push(newSkill);
+    }
+
+    this.savePortfolioData();
+    this.loadResumeSkills();
+    this.closeAllModals();
+    this.showMessage(`Skill ${editingId ? 'updated' : 'added'} successfully!`, 'success');
+  }
+
+  editSkill(id) {
+    const skill = this.portfolioData.resumeSkills.find(s => s.id == id);
+    if (skill) {
+      this.openSkillModal(skill);
+    }
+  }
+
+  deleteSkill(id) {
+    if (confirm('Are you sure you want to delete this skill?')) {
+      this.portfolioData.resumeSkills = this.portfolioData.resumeSkills.filter(s => s.id != id);
+      this.savePortfolioData();
+      this.loadResumeSkills();
+      this.showMessage('Skill deleted successfully!', 'success');
+    }
+  }
+
   closeAllModals() {
     document.querySelectorAll('.modal').forEach(modal => {
       modal.classList.remove('active');
@@ -858,6 +1249,9 @@ class AdminPanel {
       projects: [],
       certificates: [],
       memories: [],
+      education: [],
+      resumeExperience: [],
+      resumeSkills: [],
       skills: [],
       experience: [],
       blog: []
@@ -865,7 +1259,25 @@ class AdminPanel {
   }
 
   savePortfolioData() {
-    localStorage.setItem('portfolioData', JSON.stringify(this.portfolioData));
+    try {
+      const dataString = JSON.stringify(this.portfolioData);
+      localStorage.setItem('portfolioData', dataString);
+      console.log('💾 Portfolio data saved to localStorage:', this.portfolioData);
+      console.log('📊 Data includes:');
+      console.log('  - Education:', this.portfolioData.education?.length || 0, 'entries');
+      console.log('  - Experience:', this.portfolioData.resumeExperience?.length || 0, 'entries');
+      console.log('  - Skills:', this.portfolioData.resumeSkills?.length || 0, 'entries');
+      
+      // Trigger portfolio update if we're on the main portfolio page
+      if (window.portfolioDataManager) {
+        console.log('🔄 Triggering portfolio data refresh');
+        window.portfolioDataManager.loadAdminData();
+      } else {
+        console.log('⚠️ Portfolio data manager not available');
+      }
+    } catch (error) {
+      console.error('❌ Error saving portfolio data:', error);
+    }
   }
   
   setupMobileMenu() {

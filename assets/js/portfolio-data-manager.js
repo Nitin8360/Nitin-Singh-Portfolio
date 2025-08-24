@@ -13,14 +13,77 @@ class PortfolioDataManager {
     this.loadAdminData();
     // Setup memory modal functionality
     this.setupMemoryModal();
+    // Setup resume data refresh
+    this.setupResumeRefresh();
     // Auto-scroll is now handled by separate auto-scroll.js file
+  }
+
+  setupResumeRefresh() {
+    // Listen for storage changes (when admin panel updates data)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'portfolioData' && e.newValue) {
+        console.log('Portfolio data updated from admin panel, refreshing...');
+        this.loadAdminData();
+      }
+    });
+
+    // Also check for updates every few seconds when tab is active
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Page became visible, check for updates
+        setTimeout(() => {
+          this.loadAdminData();
+        }, 500);
+      }
+    });
+
+    // Hook into navigation to refresh resume data when resume page is viewed
+    const navigationLinks = document.querySelectorAll("[data-nav-link]");
+    navigationLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        const targetPage = e.target.innerHTML.toLowerCase();
+        if (targetPage === 'resume') {
+          console.log('🎯 Resume page selected, refreshing data...');
+          setTimeout(() => {
+            this.refreshResumeData();
+          }, 500); // Small delay to ensure page is visible
+        }
+      });
+    });
+
+    // Also listen for when resume page becomes active
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const resumePage = document.querySelector('[data-page="resume"]');
+          if (resumePage && resumePage.classList.contains('active')) {
+            console.log('🎯 Resume page became active via mutation observer');
+            setTimeout(() => {
+              this.refreshResumeData();
+            }, 200);
+          }
+        }
+      });
+    });
+
+    // Observe the resume page for class changes
+    const resumePage = document.querySelector('[data-page="resume"]');
+    if (resumePage) {
+      observer.observe(resumePage, { attributes: true, attributeFilter: ['class'] });
+    }
   }
 
   loadAdminData() {
     const adminData = localStorage.getItem('portfolioData');
+    console.log('Loading admin data:', adminData ? 'Found data' : 'No data found');
     if (adminData) {
-      const data = JSON.parse(adminData);
-      this.updatePortfolioElements(data);
+      try {
+        const data = JSON.parse(adminData);
+        console.log('Parsed admin data:', data);
+        this.updatePortfolioElements(data);
+      } catch (error) {
+        console.error('Error parsing admin data:', error);
+      }
     }
   }
 
@@ -43,6 +106,28 @@ class PortfolioDataManager {
     // Update memories
     if (data.memories && data.memories.length > 0) {
       this.updateMemories(data.memories);
+    }
+
+    // Update resume data
+    if (data.education && data.education.length > 0) {
+      console.log('Updating education with', data.education.length, 'entries');
+      this.updateEducation(data.education);
+    } else {
+      console.log('No education data found');
+    }
+
+    if (data.resumeExperience && data.resumeExperience.length > 0) {
+      console.log('Updating experience with', data.resumeExperience.length, 'entries');
+      this.updateResumeExperience(data.resumeExperience);
+    } else {
+      console.log('No experience data found');
+    }
+
+    if (data.resumeSkills && data.resumeSkills.length > 0) {
+      console.log('Updating skills with', data.resumeSkills.length, 'entries');
+      this.updateResumeSkills(data.resumeSkills);
+    } else {
+      console.log('No skills data found');
     }
   }
 
@@ -244,6 +329,278 @@ class PortfolioDataManager {
     `;
 
     return li;
+  }
+
+  // Resume Update Methods
+  updateEducation(education) {
+    console.log('📚 updateEducation called with:', education);
+    
+    // Wait a bit to ensure DOM is ready
+    setTimeout(() => {
+      const resumeSection = document.querySelector('.resume');
+      if (!resumeSection) {
+        console.log('❌ Resume section not found (.resume)');
+        // Try alternative selectors
+        const resumeAlt = document.querySelector('[data-page="resume"]');
+        if (resumeAlt) {
+          console.log('✅ Found resume section with data-page attribute');
+          this.updateEducationInSection(resumeAlt, education);
+        }
+        return;
+      }
+
+      this.updateEducationInSection(resumeSection, education);
+    }, 100);
+  }
+
+  updateEducationInSection(resumeSection, education) {
+    // Find the education timeline section
+    let educationSection = resumeSection.querySelector('.timeline:first-child');
+    if (!educationSection) {
+      console.log('❌ Education timeline section not found');
+      // Let's try to find any timeline
+      const allTimelines = resumeSection.querySelectorAll('.timeline');
+      console.log('Found', allTimelines.length, 'timeline sections');
+      if (allTimelines.length > 0) {
+        educationSection = allTimelines[0];
+        console.log('✅ Using first timeline for education');
+      } else {
+        console.log('❌ No timeline sections found at all');
+        return;
+      }
+    }
+
+    const timelineList = educationSection.querySelector('.timeline-list');
+    if (!timelineList) {
+      console.log('❌ Education timeline list not found');
+      console.log('Available elements in education section:', educationSection.innerHTML.substring(0, 200));
+      return;
+    }
+
+    console.log('✅ Found education timeline list, updating with', education.length, 'items');
+
+    // Clear existing education entries
+    timelineList.innerHTML = '';
+
+    // Add new education entries
+    education.forEach((edu, index) => {
+      console.log(`Adding education item ${index + 1}:`, edu);
+      const educationElement = this.createEducationElement(edu);
+      timelineList.appendChild(educationElement);
+    });
+
+    console.log('✅ Education update complete - DOM updated');
+  }
+
+  createEducationElement(education) {
+    const li = document.createElement('li');
+    li.className = 'timeline-item';
+
+    li.innerHTML = `
+      <h4 class="h4 timeline-item-title">${education.title}</h4>
+      ${education.institution ? `<h5>${education.institution}</h5>` : ''}
+      <span>${education.startYear} — ${education.endYear}</span>
+      <p class="timeline-text">
+        ${education.description || 'No additional details provided.'}
+      </p>
+    `;
+
+    return li;
+  }
+
+  updateResumeExperience(experience) {
+    console.log('💼 updateResumeExperience called with:', experience);
+    
+    setTimeout(() => {
+      const resumeSection = document.querySelector('.resume') || document.querySelector('[data-page="resume"]');
+      if (!resumeSection) {
+        console.log('❌ Resume section not found for experience');
+        return;
+      }
+
+      // Find the experience timeline section (usually the second timeline)
+      const timelineSections = resumeSection.querySelectorAll('.timeline');
+      let experienceSection = null;
+      
+      console.log('Found', timelineSections.length, 'timeline sections');
+      
+      // Look for the section with "Experience" heading
+      timelineSections.forEach((section, index) => {
+        const heading = section.querySelector('h3');
+        console.log(`Timeline ${index + 1} heading:`, heading ? heading.textContent : 'No heading');
+        if (heading && heading.textContent.toLowerCase().includes('experience')) {
+          experienceSection = section;
+          console.log('✅ Found experience section at index', index);
+        }
+      });
+
+      if (!experienceSection && timelineSections.length > 1) {
+        experienceSection = timelineSections[1]; // Fallback to second timeline
+        console.log('Using fallback: second timeline section for experience');
+      }
+
+      if (!experienceSection) {
+        console.log('❌ Experience section not found');
+        return;
+      }
+
+      const timelineList = experienceSection.querySelector('.timeline-list');
+      if (!timelineList) {
+        console.log('❌ Experience timeline list not found');
+        return;
+      }
+
+      console.log('✅ Found experience timeline list, updating with', experience.length, 'items');
+
+      // Clear existing experience entries
+      timelineList.innerHTML = '';
+
+      // Add new experience entries
+      experience.forEach((exp, index) => {
+        console.log(`Adding experience item ${index + 1}:`, exp);
+        const experienceElement = this.createExperienceElement(exp);
+        timelineList.appendChild(experienceElement);
+      });
+
+      console.log('✅ Experience update complete - DOM updated');
+    }, 100);
+  }
+
+  createExperienceElement(experience) {
+    const li = document.createElement('li');
+    li.className = 'timeline-item';
+
+    li.innerHTML = `
+      <h4 class="h4 timeline-item-title">${experience.title}</h4>
+      ${experience.company ? `<h5>${experience.company}</h5>` : ''}
+      <span>${experience.startYear} — ${experience.endYear}</span>
+      <p class="timeline-text">
+        ${experience.description || 'No additional details provided.'}
+      </p>
+    `;
+
+    return li;
+  }
+
+  updateResumeSkills(skills) {
+    console.log('⚡ updateResumeSkills called with:', skills);
+    
+    setTimeout(() => {
+      const resumeSection = document.querySelector('.resume') || document.querySelector('[data-page="resume"]');
+      if (!resumeSection) {
+        console.log('❌ Resume section not found for skills');
+        return;
+      }
+
+      // Find the skills section
+      let skillsSection = resumeSection.querySelector('.skill');
+      if (!skillsSection) {
+        console.log('❌ Skills section not found (.skill)');
+        // Try alternative selector
+        skillsSection = resumeSection.querySelector('.skills');
+        if (skillsSection) {
+          console.log('✅ Found skills section with .skills class');
+        } else {
+          console.log('❌ No skills section found at all');
+          return;
+        }
+      }
+
+      const skillsList = skillsSection.querySelector('.skills-list');
+      if (!skillsList) {
+        console.log('❌ Skills list not found');
+        console.log('Available elements in skills section:', skillsSection.innerHTML.substring(0, 200));
+        return;
+      }
+
+      console.log('✅ Found skills list, updating with', skills.length, 'items');
+
+      // Clear existing skills
+      skillsList.innerHTML = '';
+
+      // Add new skills
+      skills.forEach((skill, index) => {
+        console.log(`Adding skill item ${index + 1}:`, skill);
+        const skillElement = this.createSkillElement(skill);
+        skillsList.appendChild(skillElement);
+      });
+
+      console.log('✅ Skills update complete - DOM updated');
+    }, 100);
+  }
+
+  createSkillElement(skill) {
+    const li = document.createElement('li');
+    li.className = 'skills-item';
+
+    li.innerHTML = `
+      <div class="title-wrapper">
+        <h5 class="h5">${skill.name}</h5>
+        <data value="${skill.level}">${skill.level}%</data>
+      </div>
+      <div class="skill-progress-bg">
+        <div class="skill-progress-fill" style="width: ${skill.level}%;"></div>
+      </div>
+    `;
+
+    return li;
+  }
+
+  // Method to explicitly refresh resume data
+  refreshResumeData() {
+    console.log('🔄 Refreshing resume data...');
+    const adminData = localStorage.getItem('portfolioData');
+    if (!adminData) {
+      console.log('❌ No portfolio data found in localStorage');
+      alert('No resume data found. Please add data in the admin panel first.');
+      return;
+    }
+
+    try {
+      const data = JSON.parse(adminData);
+      console.log('📊 Current portfolio data:', data);
+      
+      // Check each section
+      console.log('🎓 Education data:', data.education || 'None');
+      console.log('💼 Experience data:', data.resumeExperience || 'None');
+      console.log('⚡ Skills data:', data.resumeSkills || 'None');
+      
+      let hasData = false;
+      
+      if (data.education && data.education.length > 0) {
+        console.log('Updating education:', data.education.length, 'entries');
+        this.updateEducation(data.education);
+        hasData = true;
+      } else {
+        console.log('No education data found');
+      }
+
+      if (data.resumeExperience && data.resumeExperience.length > 0) {
+        console.log('Updating experience:', data.resumeExperience.length, 'entries');
+        this.updateResumeExperience(data.resumeExperience);
+        hasData = true;
+      } else {
+        console.log('No experience data found');
+      }
+
+      if (data.resumeSkills && data.resumeSkills.length > 0) {
+        console.log('Updating skills:', data.resumeSkills.length, 'entries');
+        this.updateResumeSkills(data.resumeSkills);
+        hasData = true;
+      } else {
+        console.log('No skills data found');
+      }
+
+      if (!hasData) {
+        console.log('❌ No resume data found in any section');
+        alert('No resume data found. Please add education, experience, or skills in the admin panel.');
+      } else {
+        console.log('✅ Resume data refresh completed successfully');
+      }
+    } catch (error) {
+      console.error('❌ Error parsing portfolio data:', error);
+      alert('Error loading resume data: ' + error.message);
+    }
   }
 
   showMemoryModal(memoryId) {
@@ -465,6 +822,22 @@ class PortfolioDataManager {
     this.stopMemoryScroll = stopAutoScroll;
   }
 
+  // Debug method to show current data
+  debugPortfolioData() {
+    const data = localStorage.getItem('portfolioData');
+    if (data) {
+      const parsed = JSON.parse(data);
+      console.log('🔍 DEBUG: Full portfolio data structure:', parsed);
+      console.log('🔍 DEBUG: Education entries:', parsed.education?.length || 0);
+      console.log('🔍 DEBUG: Experience entries:', parsed.resumeExperience?.length || 0);
+      console.log('🔍 DEBUG: Skills entries:', parsed.resumeSkills?.length || 0);
+      return parsed;
+    } else {
+      console.log('🔍 DEBUG: No data in localStorage');
+      return null;
+    }
+  }
+
   // Method to save current portfolio state
   saveCurrentState() {
     const currentData = {
@@ -525,12 +898,83 @@ class PortfolioDataManager {
 
 // Initialize data manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded, initializing portfolio data manager...');
+  console.log('📱 DOM loaded, initializing portfolio data manager...');
   window.portfolioDataManager = new PortfolioDataManager();
+  
+  // Make debug function globally available
+  window.debugPortfolioData = () => {
+    if (window.portfolioDataManager) {
+      return window.portfolioDataManager.debugPortfolioData();
+    } else {
+      console.log('❌ Portfolio data manager not initialized');
+      return null;
+    }
+  };
+  
+  // Add a test function to create sample data
+  window.addTestResumeData = () => {
+    const testData = {
+      profile: {},
+      projects: [],
+      certificates: [],
+      memories: [],
+      education: [
+        {
+          id: 1,
+          title: "Bachelor of Computer Science",
+          institution: "Test University",
+          startYear: 2018,
+          endYear: 2022,
+          description: "Studied computer science with focus on web development and software engineering."
+        }
+      ],
+      resumeExperience: [
+        {
+          id: 1,
+          title: "Web Developer",
+          company: "Test Company Inc.",
+          startYear: 2022,
+          endYear: "Present",
+          description: "Developed responsive web applications using modern frameworks and technologies."
+        }
+      ],
+      resumeSkills: [
+        {
+          id: 1,
+          name: "JavaScript",
+          level: 85,
+          category: "Programming"
+        },
+        {
+          id: 2,
+          name: "React",
+          level: 80,
+          category: "Framework"
+        }
+      ],
+      skills: [],
+      experience: [],
+      blog: []
+    };
+    
+    localStorage.setItem('portfolioData', JSON.stringify(testData));
+    console.log('✅ Test resume data added to localStorage');
+    if (window.portfolioDataManager) {
+      window.portfolioDataManager.refreshResumeData();
+    }
+  };
+  
+  // Force refresh resume data after a short delay
+  setTimeout(() => {
+    console.log('⏰ Force refreshing resume data after 1 second...');
+    if (window.portfolioDataManager) {
+      window.portfolioDataManager.refreshResumeData();
+    }
+  }, 1000);
   
   // Force auto-scroll setup after a delay to ensure it works
   setTimeout(() => {
-    console.log('Force-initializing auto-scroll after 3 seconds...');
+    console.log('📜 Force-initializing auto-scroll after 3 seconds...');
     if (window.portfolioDataManager) {
       window.portfolioDataManager.setupMemoryAutoScroll();
     }

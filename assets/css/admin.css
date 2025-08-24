@@ -1004,3 +1004,167 @@ body {
 #memoryImagePreview img {
   border-radius: 8px;
 }
+
+/* Resume Section Styles */
+.resume-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--admin-border);
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--admin-text-secondary);
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: var(--admin-primary);
+  background-color: var(--admin-bg-secondary);
+}
+
+.tab-btn.active {
+  color: var(--admin-primary);
+  border-bottom-color: var(--admin-primary);
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Resume Item Styles */
+.resume-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 20px;
+  background: var(--admin-bg-primary);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+}
+
+.resume-item:hover {
+  border-color: var(--admin-primary);
+  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.1);
+}
+
+.resume-item-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--admin-primary);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.resume-item-content {
+  flex-grow: 1;
+}
+
+.resume-item-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  margin-bottom: 5px;
+}
+
+.resume-item-subtitle {
+  font-size: 14px;
+  color: var(--admin-text-secondary);
+  margin-bottom: 8px;
+}
+
+.resume-item-date {
+  font-size: 12px;
+  color: var(--admin-warning);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.resume-item-description {
+  font-size: 14px;
+  color: var(--admin-text-secondary);
+  line-height: 1.5;
+}
+
+/* Skill Level Display */
+.skill-level-display {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--admin-primary);
+}
+
+.skill-progress {
+  width: 100%;
+  height: 8px;
+  background-color: var(--admin-border);
+  border-radius: 4px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.skill-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--admin-primary), var(--admin-info));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* Range Slider Styling */
+input[type="range"] {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--admin-border);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 10px 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--admin-primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--admin-primary);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}

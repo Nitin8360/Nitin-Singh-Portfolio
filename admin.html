@@ -97,6 +97,10 @@
           <span class="icon">🎯</span>
           Experience
         </button>
+        <button class="nav-item" data-section="resume">
+          <span class="icon">📄</span>
+          Resume
+        </button>
         <button class="nav-item" data-section="blog">
           <span class="icon">📝</span>
           Blog Posts
@@ -259,6 +263,54 @@ My goal is to build websites and applications that are not only functional and u
         </div>
       </section>
 
+      <!--
+        - #RESUME SECTION
+      -->
+      <section id="resume" class="admin-section">
+        <div class="section-header">
+          <h2>Resume Management</h2>
+        </div>
+        
+        <div class="resume-tabs">
+          <button class="tab-btn active" data-tab="education">Education</button>
+          <button class="tab-btn" data-tab="experience">Experience</button>
+          <button class="tab-btn" data-tab="skills">Skills</button>
+        </div>
+        
+        <!-- Education Tab -->
+        <div id="education-tab" class="tab-content active">
+          <div class="section-header">
+            <h3>Education</h3>
+            <button id="addEducationBtn" class="btn btn-primary">Add Education</button>
+          </div>
+          <div class="education-list" id="educationList">
+            <!-- Education items will be loaded here dynamically -->
+          </div>
+        </div>
+        
+        <!-- Experience Tab -->
+        <div id="experience-tab" class="tab-content">
+          <div class="section-header">
+            <h3>Experience</h3>
+            <button id="addExperienceBtn" class="btn btn-primary">Add Experience</button>
+          </div>
+          <div class="experience-list" id="resumeExperienceList">
+            <!-- Experience items will be loaded here dynamically -->
+          </div>
+        </div>
+        
+        <!-- Skills Tab -->
+        <div id="skills-tab" class="tab-content">
+          <div class="section-header">
+            <h3>Skills</h3>
+            <button id="addSkillBtn" class="btn btn-primary">Add Skill</button>
+          </div>
+          <div class="skills-list" id="resumeSkillsList">
+            <!-- Skills will be loaded here dynamically -->
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -409,6 +461,124 @@ My goal is to build websites and applications that are not only functional and u
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
           <button type="submit" class="btn btn-primary">Save Memory</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Education Modal -->
+  <div id="educationModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="educationModalTitle">Add Education</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="educationForm" class="modal-form">
+        <div class="form-group">
+          <label for="educationTitle">Institution/Degree:</label>
+          <input type="text" id="educationTitle" name="title" required placeholder="e.g., Bachelor of Computer Science">
+        </div>
+        
+        <div class="form-group">
+          <label for="educationInstitution">Institution Name:</label>
+          <input type="text" id="educationInstitution" name="institution" placeholder="e.g., University of Technology">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="educationStartYear">Start Year:</label>
+            <input type="number" id="educationStartYear" name="startYear" min="1950" max="2030" required>
+          </div>
+          <div class="form-group">
+            <label for="educationEndYear">End Year:</label>
+            <input type="number" id="educationEndYear" name="endYear" min="1950" max="2030" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="educationDescription">Description:</label>
+          <textarea id="educationDescription" name="description" rows="4" placeholder="Describe your achievements, coursework, etc."></textarea>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Education</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Resume Experience Modal -->
+  <div id="resumeExperienceModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="resumeExperienceModalTitle">Add Experience</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="resumeExperienceForm" class="modal-form">
+        <div class="form-group">
+          <label for="resumeExperienceTitle">Job Title:</label>
+          <input type="text" id="resumeExperienceTitle" name="title" required placeholder="e.g., Senior Web Developer">
+        </div>
+        
+        <div class="form-group">
+          <label for="resumeExperienceCompany">Company:</label>
+          <input type="text" id="resumeExperienceCompany" name="company" placeholder="e.g., Tech Solutions Inc.">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="resumeExperienceStartYear">Start Year:</label>
+            <input type="number" id="resumeExperienceStartYear" name="startYear" min="1950" max="2030" required>
+          </div>
+          <div class="form-group">
+            <label for="resumeExperienceEndYear">End Year (or "Present"):</label>
+            <input type="text" id="resumeExperienceEndYear" name="endYear" placeholder="2024 or Present" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="resumeExperienceDescription">Job Description:</label>
+          <textarea id="resumeExperienceDescription" name="description" rows="4" placeholder="Describe your responsibilities and achievements..."></textarea>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Experience</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Skill Modal -->
+  <div id="skillModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="skillModalTitle">Add Skill</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="skillForm" class="modal-form">
+        <div class="form-group">
+          <label for="skillName">Skill Name:</label>
+          <input type="text" id="skillName" name="name" required placeholder="e.g., JavaScript">
+        </div>
+        
+        <div class="form-group">
+          <label for="skillLevel">Skill Level (%):</label>
+          <input type="range" id="skillLevel" name="level" min="0" max="100" value="50" required>
+          <div class="skill-level-display">
+            <span id="skillLevelValue">50</span>%
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="skillCategory">Category (Optional):</label>
+          <input type="text" id="skillCategory" name="category" placeholder="e.g., Programming, Design, etc.">
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Skill</button>
         </div>
       </form>
     </div>
