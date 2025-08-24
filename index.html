@@ -1226,6 +1226,83 @@
     - custom js link
   -->
   <script src="./assets/js/firebase-config.js"></script>
+  
+  <!-- Backup Firebase Manager for Portfolio Page -->
+  <script>
+    // Firebase Configuration Backup for Portfolio Page
+    function createBackupFirebaseManager() {
+      console.log('🚨 Portfolio: Creating backup Firebase manager...');
+      
+      if (typeof firebase === 'undefined') {
+        console.log('❌ Portfolio: Firebase not available, cannot create backup manager');
+        return false;
+      }
+      
+      const firebaseConfig = {
+        apiKey: "AIzaSyBhvt4uDRD6iTyLGPnsCkdzViK4zS0nUbM",
+        authDomain: "portfolio-cb6ec.firebaseapp.com",
+        projectId: "portfolio-cb6ec",
+        storageBucket: "portfolio-cb6ec.firebasestorage.app",
+        messagingSenderId: "8604173060",
+        appId: "1:8604173060:web:62f7a77e2c791bfc350651",
+        measurementId: "G-EJRXKFEVJF"
+      };
+      
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        
+        const db = firebase.firestore();
+        const userId = 'portfolio-user';
+        
+        const backupManager = {
+          db: db,
+          userId: userId,
+          isInitialized: true,
+          
+          async loadFromFirebase() {
+            try {
+              const docRef = this.db.collection('portfolios').doc(this.userId);
+              const doc = await docRef.get();
+              
+              if (doc.exists) {
+                const data = doc.data();
+                delete data.lastUpdated;
+                delete data.timestamp;
+                console.log('✅ Portfolio: Backup Firebase load successful');
+                return data;
+              }
+              return null;
+            } catch (error) {
+              console.error('❌ Portfolio: Backup Firebase load failed:', error);
+              return null;
+            }
+          },
+          
+          getStatus() {
+            return {
+              initialized: true,
+              connected: true,
+              mode: 'Backup Firebase Manager (Portfolio)',
+              projectId: firebaseConfig.projectId,
+              userId: this.userId
+            };
+          }
+        };
+        
+        window.firebaseManager = backupManager;
+        window.portfolioDataManager = backupManager;
+        
+        console.log('✅ Portfolio: Backup Firebase manager created successfully');
+        return true;
+      } catch (error) {
+        console.error('❌ Portfolio: Error creating backup Firebase manager:', error);
+        return false;
+      }
+    }
+  </script>
+  
   <script src="./assets/js/portfolio-data-manager.js"></script>
   <script src="./assets/js/script.js"></script>
 

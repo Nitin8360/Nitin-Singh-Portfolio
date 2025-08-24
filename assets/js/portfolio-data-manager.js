@@ -73,13 +73,69 @@ class PortfolioDataManager {
     }
   }
 
+  // Wait for Firebase manager with retry logic (similar to admin.js)
+  async waitForFirebaseManager(maxAttempts = 5, delay = 1000) {
+    console.log('🔄 Portfolio: Waiting for Firebase manager...');
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`🔍 Portfolio attempt ${attempt}/${maxAttempts} - Checking Firebase manager...`);
+      
+      if (window.firebaseManager && window.firebaseManager.isInitialized) {
+        console.log('✅ Portfolio: Firebase manager is ready!');
+        return window.firebaseManager;
+      }
+      
+      // Try to manually initialize if available
+      if (window.initializeFirebaseManager) {
+        console.log('🔧 Portfolio: Trying manual Firebase initialization...');
+        try {
+          const success = window.initializeFirebaseManager();
+          if (success && window.firebaseManager && window.firebaseManager.isInitialized) {
+            console.log('✅ Portfolio: Manual initialization successful!');
+            return window.firebaseManager;
+          }
+        } catch (error) {
+          console.log('⚠️ Portfolio: Manual initialization failed:', error.message);
+        }
+      }
+      
+      // Try backup Firebase manager creation
+      if (attempt === maxAttempts && typeof createBackupFirebaseManager === 'function') {
+        console.log('🚨 Portfolio: Trying backup Firebase manager...');
+        try {
+          const success = createBackupFirebaseManager();
+          if (success && window.firebaseManager && window.firebaseManager.isInitialized) {
+            console.log('✅ Portfolio: Backup Firebase manager successful!');
+            return window.firebaseManager;
+          }
+        } catch (error) {
+          console.log('⚠️ Portfolio: Backup Firebase manager failed:', error.message);
+        }
+      }
+      
+      if (attempt < maxAttempts) {
+        console.log(`⏰ Portfolio: Waiting ${delay}ms before next attempt...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    console.log('⚠️ Portfolio: Firebase manager not available after all attempts');
+    return null;
+  }
+
   async loadAdminData() {
     let data = null;
     
-    // Try to load from Firebase first
-    if (window.firebaseManager && window.firebaseManager.isInitialized) {
+    console.log('🔄 Portfolio page: Starting data load...');
+    console.log('🔍 Firebase manager check:', !!window.firebaseManager);
+    console.log('🔍 Firebase initialized:', window.firebaseManager?.isInitialized);
+    
+    // Wait for Firebase manager with retry logic (like in admin.js)
+    const firebaseManager = await this.waitForFirebaseManager(5, 1000);
+    
+    if (firebaseManager && firebaseManager.isInitialized) {
       console.log('📥 Loading portfolio data from Firebase...');
-      data = await window.firebaseManager.loadFromFirebase();
+      data = await firebaseManager.loadFromFirebase();
       
       if (data) {
         console.log('✅ Portfolio data loaded from Firebase');
