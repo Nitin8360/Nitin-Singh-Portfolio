@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Nitin Singh Portfolio</title>
+
+  <!--
+    - favicon
+  -->
+  <link rel="shortcut icon" href="./assets/images/logo.ico" type="image/x-icon">
+
+  <!--
+    - admin css
+  -->
+  <link rel="stylesheet" href="./assets/css/admin.css">
+
+  <!--
+    - google font link
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <!--
+    - #LOGIN MODAL
+  -->
+  <div id="loginModal" class="modal active">
+    <div class="modal-content">
+      <h2>Admin Login</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="rememberMe" name="rememberMe" checked>
+            <span class="checkmark"></span>
+            Remember me for 24 hours
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!--
+    - #ADMIN PANEL
+  -->
+  <div id="adminPanel" class="admin-panel">
+    
+    <!--
+      - #HEADER
+    -->
+    <header class="admin-header">
+      <h1>Portfolio Admin Panel</h1>
+      <div class="header-actions">
+        <button id="mobileMenuToggle" class="btn btn-secondary mobile-menu-btn">☰ Menu</button>
+        <button id="previewBtn" class="btn btn-secondary">Preview Portfolio</button>
+        <button id="logoutBtn" class="btn btn-danger">Logout</button>
+      </div>
+    </header>
+
+    <!--
+      - #SIDEBAR
+    -->
+    <aside class="admin-sidebar">
+      <button class="sidebar-close" id="sidebarClose">✕</button>
+      <nav class="admin-nav">
+        <button class="nav-item active" data-section="profile">
+          <span class="icon">👤</span>
+          Profile Information
+        </button>
+        <button class="nav-item" data-section="projects">
+          <span class="icon">💼</span>
+          Projects
+        </button>
+        <button class="nav-item" data-section="certificates">
+          <span class="icon">🏆</span>
+          Certificates
+        </button>
+        <button class="nav-item" data-section="skills">
+          <span class="icon">⚡</span>
+          Skills
+        </button>
+        <button class="nav-item" data-section="experience">
+          <span class="icon">🎯</span>
+          Experience
+        </button>
+        <button class="nav-item" data-section="blog">
+          <span class="icon">📝</span>
+          Blog Posts
+        </button>
+        <button class="nav-item" data-section="memories">
+          <span class="icon">📸</span>
+          Memories
+        </button>
+      </nav>
+    </aside>
+
+    <!--
+      - #MAIN CONTENT
+    -->
+    <main class="admin-main">
+      
+      <!--
+        - #PROFILE SECTION
+      -->
+      <section id="profile" class="admin-section active">
+        <div class="section-header">
+          <h2>Profile Information</h2>
+        </div>
+        
+        <form id="profileForm" class="admin-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName">Full Name:</label>
+              <input type="text" id="fullName" name="fullName" value="Nitin Singh">
+            </div>
+            <div class="form-group">
+              <label for="title">Title:</label>
+              <input type="text" id="title" name="title" value="Web developer">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email:</label>
+              <input type="email" id="email" name="email" value="nitinsingh@example.com">
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone:</label>
+              <input type="tel" id="phone" name="phone" value="+1 (234) 567-890">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="birthday">Birthday:</label>
+              <input type="date" id="birthday" name="birthday" value="1990-01-01">
+            </div>
+            <div class="form-group">
+              <label for="location">Location:</label>
+              <input type="text" id="location" name="location" value="Your City, Your State, Your Country">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="aboutText">About Me:</label>
+            <textarea id="aboutText" name="aboutText" rows="6">I'm a passionate Web Developer from Your Location, with expertise in creating modern, responsive web applications. I enjoy turning complex problems into simple, beautiful and intuitive digital solutions.
+
+My goal is to build websites and applications that are not only functional and user-friendly but also visually appealing. I bring a personal touch to every project, ensuring that each solution is tailored to meet specific needs and objectives. I have experience working with various technologies and frameworks to deliver high-quality digital experiences.</textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="avatar">Profile Image:</label>
+            <input type="file" id="avatar" name="avatar" accept="image/*">
+            <div class="current-avatar">
+              <img src="./assets/images/my-avatar.png" alt="Current Avatar" width="80">
+              <span>Current Image</span>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-success">Update Profile</button>
+        </form>
+      </section>
+
+      <!--
+        - #PROJECTS SECTION
+      -->
+      <section id="projects" class="admin-section">
+        <div class="section-header">
+          <h2>Projects</h2>
+          <button id="addProjectBtn" class="btn btn-primary">Add New Project</button>
+        </div>
+        
+        <div class="projects-grid" id="projectsGrid">
+          <!-- Projects will be loaded here dynamically -->
+        </div>
+      </section>
+
+      <!--
+        - #CERTIFICATES SECTION
+      -->
+      <section id="certificates" class="admin-section">
+        <div class="section-header">
+          <h2>Certificates</h2>
+          <button id="addCertificateBtn" class="btn btn-primary">Add New Certificate</button>
+        </div>
+        
+        <div class="certificates-list" id="certificatesList">
+          <!-- Certificates will be loaded here dynamically -->
+        </div>
+      </section>
+
+      <!--
+        - #SKILLS SECTION
+      -->
+      <section id="skills" class="admin-section">
+        <div class="section-header">
+          <h2>Skills</h2>
+          <button id="addSkillBtn" class="btn btn-primary">Add New Skill</button>
+        </div>
+        
+        <div class="skills-list" id="skillsList">
+          <!-- Skills will be loaded here dynamically -->
+        </div>
+      </section>
+
+      <!--
+        - #EXPERIENCE SECTION
+      -->
+      <section id="experience" class="admin-section">
+        <div class="section-header">
+          <h2>Experience</h2>
+          <button id="addExperienceBtn" class="btn btn-primary">Add New Experience</button>
+        </div>
+        
+        <div class="experience-list" id="experienceList">
+          <!-- Experience will be loaded here dynamically -->
+        </div>
+      </section>
+
+      <!--
+        - #BLOG SECTION
+      -->
+      <section id="blog" class="admin-section">
+        <div class="section-header">
+          <h2>Blog Posts</h2>
+          <button id="addBlogBtn" class="btn btn-primary">Add New Post</button>
+        </div>
+        
+        <div class="blog-list" id="blogList">
+          <!-- Blog posts will be loaded here dynamically -->
+        </div>
+      </section>
+
+      <!--
+        - #MEMORIES SECTION
+      -->
+      <section id="memories" class="admin-section">
+        <div class="section-header">
+          <h2>Memories</h2>
+          <button id="addMemoryBtn" class="btn btn-primary">Add New Memory</button>
+        </div>
+        
+        <div class="memories-grid" id="memoriesGrid">
+          <!-- Memories will be loaded here dynamically -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!--
+    - #MODALS
+  -->
+  
+  <!-- Project Modal -->
+  <div id="projectModal" class="modal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h3 id="projectModalTitle">Add New Project</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="projectForm" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="projectTitle">Project Title:</label>
+            <input type="text" id="projectTitle" name="title" required>
+          </div>
+          <div class="form-group">
+            <label for="projectCategory">Category:</label>
+            <select id="projectCategory" name="category" required>
+              <option value="web development">Web Development</option>
+              <option value="web design">Web Design</option>
+              <option value="applications">Applications</option>
+              <option value="mobile apps">Mobile Apps</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="projectDescription">Description:</label>
+          <textarea id="projectDescription" name="description" rows="4"></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="projectImage">Project Image:</label>
+            <input type="file" id="projectImage" name="image" accept="image/*">
+            <div class="image-preview" style="margin-top: 0.5rem;">
+              <img id="projectImagePreview" src="./assets/images/project-1.jpg" alt="Preview" width="100" style="border-radius: 8px; border: 2px solid var(--admin-border);">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="projectUrl">Project URL:</label>
+            <input type="url" id="projectUrl" name="url" placeholder="https://example.com">
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Certificate Modal -->
+  <div id="certificateModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="certificateModalTitle">Add New Certificate</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="certificateForm" class="modal-form">
+        <div class="form-group">
+          <label for="certificateTitle">Certificate Title:</label>
+          <input type="text" id="certificateTitle" name="title" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="certificateIssuer">Issuer:</label>
+            <input type="text" id="certificateIssuer" name="issuer" required>
+          </div>
+          <div class="form-group">
+            <label for="certificateDate">Issue Date:</label>
+            <input type="date" id="certificateDate" name="date" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="certificateImage">Certificate Image:</label>
+          <input type="file" id="certificateImage" name="image" accept="image/*">
+          <div class="image-preview" style="margin-top: 0.5rem;">
+            <img id="certificateImagePreview" src="" alt="Preview" width="100" style="border-radius: 8px; border: 2px solid var(--admin-border); display: none;">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="certificateUrl">Certificate URL (Optional):</label>
+          <input type="url" id="certificateUrl" name="url" placeholder="https://certificate-url.com">
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Certificate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Memory Modal -->
+  <div id="memoryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="memoryModalTitle">Add New Memory</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="memoryForm" class="modal-form">
+        <div class="form-group">
+          <label for="memoryTitle">Memory Title:</label>
+          <input type="text" id="memoryTitle" name="title" required placeholder="e.g., Hackathon Winner 2024">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="memoryCategory">Category:</label>
+            <select id="memoryCategory" name="category" required>
+              <option value="hackathon">Hackathon</option>
+              <option value="college">College Event</option>
+              <option value="competition">Competition</option>
+              <option value="project">Project</option>
+              <option value="team">Team Photo</option>
+              <option value="achievement">Achievement</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="memoryDate">Date:</label>
+            <input type="date" id="memoryDate" name="date">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="memoryDescription">Description (Optional):</label>
+          <textarea id="memoryDescription" name="description" rows="3" placeholder="Describe this memory..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="memoryImage">Memory Image:</label>
+          <input type="file" id="memoryImage" name="image" accept="image/*">
+          <div class="image-preview" style="margin-top: 0.5rem;">
+            <img id="memoryImagePreview" src="" alt="Preview" width="100" style="border-radius: 8px; border: 2px solid var(--admin-border); display: none;">
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Memory</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mobile overlay for sidebar -->
+  <div class="mobile-overlay" id="mobileOverlay"></div>
+
+  <!--
+    - custom js link
+  -->
+  <script src="./assets/js/admin.js"></script>
+
+</body>
+
+</html>
