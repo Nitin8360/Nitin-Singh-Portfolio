@@ -584,6 +584,89 @@ My goal is to build websites and applications that are not only functional and u
     </div>
   </div>
 
+  <!-- Blog Modal -->
+  <div id="blogModal" class="modal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h3 id="blogModalTitle">Add New Blog Post</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="blogForm" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="blogTitle">Blog Title:</label>
+            <input type="text" id="blogTitle" name="title" required placeholder="Enter blog post title">
+          </div>
+          <div class="form-group">
+            <label for="blogCategory">Category:</label>
+            <select id="blogCategory" name="category" required>
+              <option value="Design">Design</option>
+              <option value="Development">Development</option>
+              <option value="Technology">Technology</option>
+              <option value="Tutorial">Tutorial</option>
+              <option value="Personal">Personal</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="blogDate">Publication Date:</label>
+            <input type="date" id="blogDate" name="date" required>
+          </div>
+          <div class="form-group">
+            <label for="blogReadTime">Read Time (minutes):</label>
+            <input type="number" id="blogReadTime" name="readTime" min="1" max="60" value="5" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="blogExcerpt">Blog Excerpt:</label>
+          <textarea id="blogExcerpt" name="excerpt" rows="3" required placeholder="Write a brief summary of your blog post..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="blogContent">Blog Content:</label>
+          <textarea id="blogContent" name="content" rows="8" required placeholder="Write your full blog post content here..."></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="blogImage">Featured Image:</label>
+            <input type="file" id="blogImage" name="image" accept="image/*">
+            <div class="image-preview" style="margin-top: 0.5rem;">
+              <img id="blogImagePreview" src="" alt="Preview" width="100" style="border-radius: 8px; border: 2px solid var(--admin-border); display: none;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="blogUrl">Blog URL Slug:</label>
+            <input type="text" id="blogUrl" name="slug" placeholder="auto-generated-from-title">
+            <small style="color: var(--light-gray); font-size: 0.85rem;">Leave empty to auto-generate from title</small>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="blogTags">Tags (comma separated):</label>
+            <input type="text" id="blogTags" name="tags" placeholder="javascript, web development, tutorial">
+          </div>
+          <div class="form-group">
+            <label for="blogStatus">Status:</label>
+            <select id="blogStatus" name="status" required>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Blog Post</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Mobile overlay for sidebar -->
   <div class="mobile-overlay" id="mobileOverlay"></div>
 

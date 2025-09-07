@@ -253,6 +253,11 @@ class PortfolioDataManager {
       this.updateMemories(data.memories);
     }
 
+    // Update blog posts
+    if (data.blog && data.blog.length > 0) {
+      this.updateBlog(data.blog);
+    }
+
     // Update resume data
     if (data.education && data.education.length > 0) {
       console.log('Updating education with', data.education.length, 'entries');
@@ -490,6 +495,202 @@ class PortfolioDataManager {
     `;
 
     return li;
+  }
+
+  updateBlog(blogs) {
+    console.log('Updating blog with', blogs.length, 'posts');
+    
+    // Get the blog posts container
+    const blogContainer = document.querySelector('.blog-posts .coming-soon-container') || document.querySelector('.blog-posts .blog-posts-list') || document.querySelector('.blog-posts');
+    if (!blogContainer) {
+      console.log('Blog container not found');
+      return;
+    }
+
+    // Filter only published blogs and sort by date (newest first)
+    const publishedBlogs = blogs
+      .filter(blog => blog.status === 'published')
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (publishedBlogs.length === 0) {
+      // Show "Coming Soon" message if no published blogs
+      blogContainer.innerHTML = `
+        <div class="coming-soon-container" style="text-align: center; padding: 60px 20px;">
+          <h2 class="h2" style="color: var(--orange-yellow-crayola); margin-bottom: 20px; font-size: 2.5rem;">Coming Soon</h2>
+          <p style="color: var(--light-gray); font-size: 1.2rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">
+            Exciting blog content is on the way! Stay tuned for insights, tutorials, and stories about design, development, and technology.
+          </p>
+          <div style="margin-top: 30px;">
+            <ion-icon name="time-outline" style="font-size: 3rem; color: var(--orange-yellow-crayola); opacity: 0.7;"></ion-icon>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // Create blog posts list
+    blogContainer.innerHTML = `
+      <ul class="blog-posts-list">
+        ${publishedBlogs.map(blog => this.createBlogElement(blog)).join('')}
+      </ul>
+    `;
+  }
+
+  createBlogElement(blog) {
+    const formattedDate = new Date(blog.date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit'
+    });
+
+    return `
+      <li class="blog-post-item">
+        <a href="#" onclick="portfolioDataManager.showBlogModal('${blog.id}'); return false;">
+          <figure class="blog-banner-box">
+            <img src="${blog.image || './assets/images/icon-quote.svg'}" alt="${blog.title}" loading="lazy">
+          </figure>
+          <div class="blog-content">
+            <div class="blog-meta">
+              <p class="blog-category">${blog.category}</p>
+              <span class="dot"></span>
+              <time datetime="${blog.date}">${formattedDate}</time>
+            </div>
+            <h3 class="h3 blog-item-title">${blog.title}</h3>
+            <p class="blog-text">${blog.excerpt}</p>
+          </div>
+        </a>
+      </li>
+    `;
+  }
+
+  showBlogModal(blogId) {
+    // Load blog data
+    const data = this.loadLocalData();
+    const blog = data.blog?.find(b => b.id === blogId);
+    
+    if (!blog) {
+      console.error('Blog post not found:', blogId);
+      return;
+    }
+
+    // Create and show blog modal
+    const modal = document.createElement('div');
+    modal.className = 'blog-modal-overlay';
+    modal.innerHTML = `
+      <div class="blog-modal">
+        <div class="blog-modal-header">
+          <button class="blog-modal-close" onclick="this.closest('.blog-modal-overlay').remove()">×</button>
+        </div>
+        <div class="blog-modal-content">
+          ${blog.image ? `<img src="${blog.image}" alt="${blog.title}" class="blog-modal-image">` : ''}
+          <div class="blog-modal-meta">
+            <span class="blog-modal-category">${blog.category}</span>
+            <span class="blog-modal-date">${new Date(blog.date).toLocaleDateString()}</span>
+            <span class="blog-modal-read-time">${blog.readTime} min read</span>
+          </div>
+          <h1 class="blog-modal-title">${blog.title}</h1>
+          <div class="blog-modal-text">${blog.content.replace(/\n/g, '<br>')}</div>
+          ${blog.tags ? `<div class="blog-modal-tags">${blog.tags.split(',').map(tag => `<span class="blog-tag">${tag.trim()}</span>`).join('')}</div>` : ''}
+        </div>
+      </div>
+    `;
+
+    // Add modal styles if not already added
+    if (!document.querySelector('#blog-modal-styles')) {
+      const styles = document.createElement('style');
+      styles.id = 'blog-modal-styles';
+      styles.textContent = `
+        .blog-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.8);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 10000;
+          padding: 20px;
+        }
+        .blog-modal {
+          background: var(--eerie-black-1);
+          border-radius: 20px;
+          max-width: 800px;
+          max-height: 90vh;
+          overflow-y: auto;
+          position: relative;
+        }
+        .blog-modal-header {
+          padding: 20px 20px 0;
+          display: flex;
+          justify-content: flex-end;
+        }
+        .blog-modal-close {
+          background: var(--orange-yellow-crayola);
+          border: none;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          font-size: 24px;
+          color: white;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .blog-modal-content {
+          padding: 0 40px 40px;
+        }
+        .blog-modal-image {
+          width: 100%;
+          height: 300px;
+          object-fit: cover;
+          border-radius: 15px;
+          margin-bottom: 20px;
+        }
+        .blog-modal-meta {
+          display: flex;
+          gap: 15px;
+          margin-bottom: 20px;
+          font-size: 14px;
+          color: var(--light-gray);
+        }
+        .blog-modal-category {
+          background: var(--orange-yellow-crayola);
+          padding: 5px 10px;
+          border-radius: 5px;
+          color: white;
+        }
+        .blog-modal-title {
+          font-size: 2.5rem;
+          color: white;
+          margin-bottom: 20px;
+          line-height: 1.2;
+        }
+        .blog-modal-text {
+          color: var(--light-gray);
+          line-height: 1.6;
+          font-size: 1.1rem;
+          margin-bottom: 30px;
+        }
+        .blog-modal-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .blog-tag {
+          background: var(--onyx);
+          color: var(--light-gray);
+          padding: 5px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+        }
+      `;
+      document.head.appendChild(styles);
+    }
+
+    document.body.appendChild(modal);
   }
 
   // Resume Update Methods

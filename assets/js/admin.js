@@ -452,6 +452,11 @@ class AdminPanel {
       e.preventDefault();
       this.saveSkill(e);
     });
+
+    document.getElementById('blogForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.saveBlog(e);
+    });
   }
 
   setupActionButtons() {
@@ -479,6 +484,10 @@ class AdminPanel {
 
     document.getElementById('addSkillBtn').addEventListener('click', () => {
       this.openSkillModal();
+    });
+
+    document.getElementById('addBlogBtn').addEventListener('click', () => {
+      this.openBlogModal();
     });
 
     // Skill level slider
@@ -1142,7 +1151,174 @@ class AdminPanel {
 
   loadBlog() {
     const blogList = document.getElementById('blogList');
-    blogList.innerHTML = '<p class="text-center">Blog management coming soon...</p>';
+    const data = this.loadData();
+    const blogs = data.blog || [];
+
+    if (blogs.length === 0) {
+      blogList.innerHTML = '<p class="text-center">No blog posts yet. Click "Add New Post" to create your first blog post.</p>';
+      return;
+    }
+
+    blogList.innerHTML = blogs.map(blog => `
+      <div class="blog-item" data-id="${blog.id}">
+        <div class="blog-header">
+          ${blog.image ? `<img src="${blog.image}" alt="${blog.title}" class="blog-thumbnail">` : ''}
+          <div class="blog-info">
+            <h3>${blog.title}</h3>
+            <div class="blog-meta">
+              <span class="category">${blog.category}</span>
+              <span class="date">${new Date(blog.date).toLocaleDateString()}</span>
+              <span class="read-time">${blog.readTime} min read</span>
+              <span class="status ${blog.status}">${blog.status}</span>
+            </div>
+            <p class="blog-excerpt">${blog.excerpt}</p>
+            ${blog.tags ? `<div class="blog-tags">${blog.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}</div>` : ''}
+          </div>
+        </div>
+        <div class="blog-actions">
+          <button class="btn btn-sm btn-secondary" onclick="adminManager.editBlog('${blog.id}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="adminManager.deleteBlog('${blog.id}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  openBlogModal(blogId = null) {
+    const modal = document.getElementById('blogModal');
+    const title = document.getElementById('blogModalTitle');
+    const form = document.getElementById('blogForm');
+
+    // Reset form
+    form.reset();
+    document.getElementById('blogImagePreview').style.display = 'none';
+
+    if (blogId) {
+      title.textContent = 'Edit Blog Post';
+      const data = this.loadData();
+      const blog = data.blog?.find(b => b.id === blogId);
+      if (blog) {
+        document.getElementById('blogTitle').value = blog.title;
+        document.getElementById('blogCategory').value = blog.category;
+        document.getElementById('blogDate').value = blog.date;
+        document.getElementById('blogReadTime').value = blog.readTime;
+        document.getElementById('blogExcerpt').value = blog.excerpt;
+        document.getElementById('blogContent').value = blog.content;
+        document.getElementById('blogUrl').value = blog.slug || '';
+        document.getElementById('blogTags').value = blog.tags || '';
+        document.getElementById('blogStatus').value = blog.status;
+        
+        if (blog.image) {
+          const preview = document.getElementById('blogImagePreview');
+          preview.src = blog.image;
+          preview.style.display = 'block';
+        }
+      }
+    } else {
+      title.textContent = 'Add New Blog Post';
+      // Set default date to today
+      document.getElementById('blogDate').value = new Date().toISOString().split('T')[0];
+    }
+
+    modal.classList.add('active');
+  }
+
+  async saveBlog(e) {
+    const formData = new FormData(e.target);
+    const blogData = {
+      id: Date.now().toString(),
+      title: formData.get('title'),
+      category: formData.get('category'),
+      date: formData.get('date'),
+      readTime: parseInt(formData.get('readTime')),
+      excerpt: formData.get('excerpt'),
+      content: formData.get('content'),
+      slug: formData.get('slug') || this.generateSlug(formData.get('title')),
+      tags: formData.get('tags'),
+      status: formData.get('status'),
+      image: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Handle image upload
+    const imageFile = formData.get('image');
+    if (imageFile && imageFile.size > 0) {
+      try {
+        blogData.image = await this.optimizeImage(imageFile, 800, 600, 0.8);
+      } catch (error) {
+        console.error('Error processing blog image:', error);
+        alert('Error processing image. Please try a smaller image.');
+        return;
+      }
+    }
+
+    // Check if editing existing blog
+    const existingBlogId = e.target.dataset.blogId;
+    if (existingBlogId) {
+      blogData.id = existingBlogId;
+      blogData.createdAt = e.target.dataset.createdAt;
+    }
+
+    try {
+      const data = this.loadData();
+      if (!data.blog) data.blog = [];
+
+      if (existingBlogId) {
+        const index = data.blog.findIndex(b => b.id === existingBlogId);
+        if (index !== -1) {
+          data.blog[index] = blogData;
+        }
+      } else {
+        data.blog.unshift(blogData); // Add to beginning of array
+      }
+
+      await this.saveData(data);
+      this.loadBlog();
+      this.closeModal('blogModal');
+      this.showNotification('Blog post saved successfully!', 'success');
+    } catch (error) {
+      console.error('Error saving blog:', error);
+      this.showNotification('Error saving blog post. Please try again.', 'error');
+    }
+  }
+
+  editBlog(blogId) {
+    const form = document.getElementById('blogForm');
+    form.dataset.blogId = blogId;
+    
+    const data = this.loadData();
+    const blog = data.blog?.find(b => b.id === blogId);
+    if (blog) {
+      form.dataset.createdAt = blog.createdAt;
+    }
+    
+    this.openBlogModal(blogId);
+  }
+
+  deleteBlog(blogId) {
+    if (confirm('Are you sure you want to delete this blog post?')) {
+      try {
+        const data = this.loadData();
+        if (data.blog) {
+          data.blog = data.blog.filter(b => b.id !== blogId);
+          this.saveData(data);
+          this.loadBlog();
+          this.showNotification('Blog post deleted successfully!', 'success');
+        }
+      } catch (error) {
+        console.error('Error deleting blog:', error);
+        this.showNotification('Error deleting blog post. Please try again.', 'error');
+      }
+    }
+  }
+
+  generateSlug(title) {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim('-');
   }
 
   // Resume Management Methods
