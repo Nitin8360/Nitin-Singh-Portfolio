@@ -524,11 +524,6 @@
 
         <header>
           <h2 class="h2 article-title">Resume</h2>
-          <div style="display: flex; gap: 10px; margin-left: 20px;">
-            <button onclick="if(window.addTestResumeData) { window.addTestResumeData(); } else { alert('Test function not available'); }" style="background: var(--vegas-gold); border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--smoky-black-1); font-weight: 600;">📝 Add Test Data</button>
-            <button onclick="if(window.portfolioDataManager) { window.portfolioDataManager.debugPortfolioData(); } else { alert('Portfolio data manager not loaded'); }" style="background: var(--bittersweet-shimmer); border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; color: white; font-weight: 600;">🔍 Debug Data</button>
-            <button id="refreshResumeBtn" onclick="if(window.portfolioDataManager) { console.log('Manual refresh triggered'); window.portfolioDataManager.refreshResumeData(); } else { alert('Portfolio data manager not loaded'); }" style="background: var(--orange-yellow-crayola); border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--smoky-black-1); font-weight: 600;">🔄 Refresh Data</button>
-          </div>
         </header>
 
         <section class="timeline">
@@ -1301,6 +1296,17 @@
         return false;
       }
     }
+
+    // Try to create Firebase manager immediately when scripts are ready
+    document.addEventListener('DOMContentLoaded', () => {
+      // Small delay to ensure Firebase scripts are loaded
+      setTimeout(() => {
+        if (!window.firebaseManager) {
+          console.log('🔄 Portfolio: Attempting immediate Firebase manager creation...');
+          createBackupFirebaseManager();
+        }
+      }, 100);
+    });
   </script>
   
   <script src="./assets/js/portfolio-data-manager.js"></script>

@@ -5,17 +5,62 @@
 
 class PortfolioDataManager {
   constructor() {
+    this.dataLoaded = false;
+    this.loadingStartTime = Date.now();
+    this.showLoadingIndicator();
     this.init();
   }
 
+  showLoadingIndicator() {
+    // Add a subtle loading indicator
+    const loadingElement = document.createElement('div');
+    loadingElement.id = 'portfolio-loading';
+    loadingElement.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-size: 14px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    `;
+    loadingElement.innerHTML = `
+      <div style="width: 16px; height: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      Loading portfolio data...
+    `;
+    
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(loadingElement);
+  }
+
+  hideLoadingIndicator() {
+    const loadingElement = document.getElementById('portfolio-loading');
+    if (loadingElement) {
+      const loadTime = Date.now() - this.loadingStartTime;
+      console.log(`📊 Portfolio data loaded in ${loadTime}ms`);
+      loadingElement.remove();
+    }
+  }
+
   init() {
-    // Load admin data and apply to portfolio if available
+    // Start loading data immediately in parallel
     this.loadAdminData();
-    // Setup memory modal functionality
+    // Setup other functionality
     this.setupMemoryModal();
-    // Setup resume data refresh
     this.setupResumeRefresh();
-    // Auto-scroll is now handled by separate auto-scroll.js file
   }
 
   setupResumeRefresh() {
@@ -73,8 +118,8 @@ class PortfolioDataManager {
     }
   }
 
-  // Wait for Firebase manager with retry logic (similar to admin.js)
-  async waitForFirebaseManager(maxAttempts = 5, delay = 1000) {
+  // Wait for Firebase manager with faster retry logic
+  async waitForFirebaseManager(maxAttempts = 3, delay = 500) {
     console.log('🔄 Portfolio: Waiting for Firebase manager...');
     
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -85,8 +130,8 @@ class PortfolioDataManager {
         return window.firebaseManager;
       }
       
-      // Try to manually initialize if available
-      if (window.initializeFirebaseManager) {
+      // Try to manually initialize if available (only on first attempt)
+      if (attempt === 1 && window.initializeFirebaseManager) {
         console.log('🔧 Portfolio: Trying manual Firebase initialization...');
         try {
           const success = window.initializeFirebaseManager();
@@ -99,7 +144,7 @@ class PortfolioDataManager {
         }
       }
       
-      // Try backup Firebase manager creation
+      // Try backup Firebase manager creation (only on last attempt)
       if (attempt === maxAttempts && typeof createBackupFirebaseManager === 'function') {
         console.log('🚨 Portfolio: Trying backup Firebase manager...');
         try {
@@ -130,36 +175,58 @@ class PortfolioDataManager {
     console.log('🔍 Firebase manager check:', !!window.firebaseManager);
     console.log('🔍 Firebase initialized:', window.firebaseManager?.isInitialized);
     
-    // Wait for Firebase manager with retry logic (like in admin.js)
-    const firebaseManager = await this.waitForFirebaseManager(5, 1000);
+    // First, try to load from localStorage immediately (fast fallback)
+    const localData = localStorage.getItem('portfolioData');
+    if (localData) {
+      try {
+        const parsedLocalData = JSON.parse(localData);
+        console.log('📦 Found local data, applying immediately...');
+        this.applyData(parsedLocalData);
+      } catch (error) {
+        console.error('❌ Error parsing local data:', error);
+      }
+    }
+    
+    // Then try Firebase (might be slower)
+    const firebaseManager = await this.waitForFirebaseManager(3, 500);
     
     if (firebaseManager && firebaseManager.isInitialized) {
       console.log('📥 Loading portfolio data from Firebase...');
-      data = await firebaseManager.loadFromFirebase();
-      
-      if (data) {
-        console.log('✅ Portfolio data loaded from Firebase');
+      try {
+        data = await firebaseManager.loadFromFirebase();
+        
+        if (data) {
+          console.log('✅ Portfolio data loaded from Firebase');
+          // Update with Firebase data (might override local data)
+          this.applyData(data);
+          this.dataLoaded = true;
+          this.hideLoadingIndicator();
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Error loading from Firebase:', error);
       }
     }
     
-    // Fallback to localStorage if Firebase data is not available
-    if (!data) {
-      console.log('📥 Loading portfolio data from localStorage...');
-      const adminData = localStorage.getItem('portfolioData');
-      
-      if (adminData) {
-        try {
-          data = JSON.parse(adminData);
-          console.log('✅ Portfolio data loaded from localStorage');
-        } catch (error) {
-          console.error('❌ Error parsing admin data:', error);
-          return;
-        }
-      } else {
-        console.log('❌ No portfolio data found');
-        return;
+    // If we get here, either Firebase failed or no Firebase data
+    if (localData) {
+      console.log('📦 Using localStorage data as final fallback');
+      try {
+        data = JSON.parse(localData);
+        this.applyData(data);
+      } catch (error) {
+        console.error('❌ Error with localStorage fallback:', error);
       }
+    } else {
+      console.log('❌ No portfolio data found anywhere');
     }
+    
+    this.dataLoaded = true;
+    this.hideLoadingIndicator();
+  }
+
+  applyData(data) {
+    if (!data) return;
 
     console.log('📊 Updating portfolio elements with loaded data');
     this.updatePortfolioElements(data);
@@ -646,7 +713,7 @@ class PortfolioDataManager {
     const adminData = localStorage.getItem('portfolioData');
     if (!adminData) {
       console.log('❌ No portfolio data found in localStorage');
-      alert('No resume data found. Please add data in the admin panel first.');
+      console.log('ℹ️ Tip: Add data in the admin panel first to see resume content');
       return;
     }
 
@@ -687,13 +754,13 @@ class PortfolioDataManager {
 
       if (!hasData) {
         console.log('❌ No resume data found in any section');
-        alert('No resume data found. Please add education, experience, or skills in the admin panel.');
+        console.log('ℹ️ Tip: Add education, experience, or skills in the admin panel to populate resume');
       } else {
         console.log('✅ Resume data refresh completed successfully');
       }
     } catch (error) {
       console.error('❌ Error parsing portfolio data:', error);
-      alert('Error loading resume data: ' + error.message);
+      console.error('❌ Error details:', error.message);
     }
   }
 
