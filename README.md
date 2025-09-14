@@ -45,23 +45,11 @@ cd your-portfolio-repo
 
 3. Open `index.html` in your web browser or use a local server.
 
-## Customization
-
-To customize this portfolio for your own use:
-
-1. Replace the avatar image in `assets/images/my-avatar.png`
-2. Update contact information in `index.html`
-3. Modify the about section with your information
-4. Update the resume/experience section
-5. Replace project images and descriptions
-6. Update blog posts with your content
-7. Customize colors and styling in `assets/css/style.css`
-
 ## Contact
 
 If you want to contact me, you can reach me at:
-- Email: nitinsingh@example.com
-- GitHub: [yourusername](https://github.com/yourusername)
+- Email: nitinsingh6167@gmail.com
+- GitHub: [Nitin8360](https://github.com/yourusername)
 
 ## License
 
