@@ -409,9 +409,9 @@ main {
   inset: 0;
   display: grid;
   place-items: center;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.6), rgba(0,0,0,0.85));
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.927), rgba(0, 0, 0, 0.905));
   z-index: 99999;
-  transition: opacity 400ms ease, visibility 400ms ease;
+  transition: opacity 600ms ease, visibility 400ms ease;
   opacity: 1;
   visibility: visible;
 }
