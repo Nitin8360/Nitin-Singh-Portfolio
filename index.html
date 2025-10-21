@@ -31,6 +31,25 @@
     - #CURSOR EFFECT
   -->
   <div class="cursor-glow"></div>
+  <!-- Preloader (animated circle from Uiverse) -->
+  <div id="preloader" class="preloader" aria-hidden="false">
+    <div class="loader">
+      <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <mask id="clipping">
+            <polygon points="0,0 100,0 100,100 0,100" fill="black"></polygon>
+            <polygon points="25,25 75,25 50,75" fill="white"></polygon>
+            <polygon points="50,25 75,75 25,75" fill="white"></polygon>
+            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
+          </mask>
+        </defs>
+      </svg>
+      <div class="box" aria-hidden="true"></div>
+    </div>
+  </div>
 
   <!--
     - #MAIN
@@ -310,154 +329,6 @@
           </ul>
 
         </section>
-
-
-        <!--
-          - testimonials
-        -->
-
-        <section class="testimonials">
-
-          <h3 class="h3 testimonials-title">Testimonials</h3>
-
-          <ul class="testimonials-list has-scrollbar">
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-1.png" alt="Daniel lewis" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Daniel lewis</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Nitin was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-2.png" alt="Jessica miller" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Jessica miller</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Nitin was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-3.png" alt="Emily evans" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Emily evans</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Nitin was hired to create a corporate identity. We were very pleased with the work done. She has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-            <li class="testimonials-item">
-              <div class="content-card" data-testimonials-item>
-
-                <figure class="testimonials-avatar-box">
-                  <img src="./assets/images/avatar-4.png" alt="Henry william" width="60" data-testimonials-avatar>
-                </figure>
-
-                <h4 class="h4 testimonials-item-title" data-testimonials-title>Henry william</h4>
-
-                <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Nitin was hired to create a corporate identity. We were very pleased with the work done. He has a
-                    lot of experience
-                    and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                    consectetur adipiscing
-                    elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                  </p>
-                </div>
-
-              </div>
-            </li>
-
-          </ul>
-
-        </section>
-
-
-        <!--
-          - testimonials modal
-        -->
-
-        <div class="modal-container" data-modal-container>
-
-          <div class="overlay" data-overlay></div>
-
-          <section class="testimonials-modal">
-
-            <button class="modal-close-btn" data-modal-close-btn>
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-
-            <div class="modal-img-wrapper">
-              <figure class="modal-avatar-box">
-                <img src="./assets/images/avatar-1.png" alt="Daniel lewis" width="80" data-modal-img>
-              </figure>
-
-              <img src="./assets/images/icon-quote.svg" alt="quote icon">
-            </div>
-
-            <div class="modal-content">
-
-              <h4 class="h3 modal-title" data-modal-title>Daniel lewis</h4>
-
-              <time datetime="2021-06-14">14 June, 2021</time>
-
-              <div data-modal-text>
-                <p>
-                  Nitin was hired to create a corporate identity. We were very pleased with the work done. He has a
-                  lot of experience
-                  and is very concerned about the needs of client. Lorem ipsum dolor sit amet, ullamcous cididt
-                  consectetur adipiscing
-                  elit, seds do et eiusmod tempor incididunt ut laborels dolore magnarels alia.
-                </p>
-              </div>
-
-            </div>
-
-          </section>
-
-        </div>
 
 
         <!--
@@ -1159,6 +1030,89 @@
   
   <script src="./assets/js/portfolio-data-manager.js"></script>
   <script src="./assets/js/script.js"></script>
+
+  <!-- Preloader Script - runs after main scripts to avoid navbar conflicts -->
+  <script>
+    // Preloader hide logic: ensure minimum visible time (2000ms), then fade and remove
+    (function () {
+      var pre = document.getElementById('preloader');
+      if (!pre) return;
+
+      var minVisible = 2000; // milliseconds
+      var startedAt = Date.now();
+
+      function hidePreloader() {
+        var elapsed = Date.now() - startedAt;
+        var remaining = Math.max(0, minVisible - elapsed);
+        
+        // Immediately disable pointer events so navbar works
+        pre.style.pointerEvents = 'none';
+        
+        setTimeout(function () {
+          pre.classList.add('hidden');
+          setTimeout(function () {
+            if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
+          }, 600);
+        }, remaining);
+      }
+
+      if (document.readyState === 'complete') {
+        // already loaded
+        hidePreloader();
+      } else {
+        window.addEventListener('load', hidePreloader);
+      }
+    })();
+
+    // Backup navbar functionality - ensure navigation works
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Setting up navbar functionality...');
+      
+      const navigationLinks = document.querySelectorAll("[data-nav-link]");
+      const pages = document.querySelectorAll("[data-page]");
+      
+      console.log('Found navigation links:', navigationLinks.length);
+      console.log('Found pages:', pages.length);
+
+      // Backup navigation function
+      function switchPage(targetPage) {
+        console.log('Switching to page:', targetPage);
+        
+        // Remove active class from all pages and links
+        pages.forEach(page => page.classList.remove("active"));
+        navigationLinks.forEach(link => link.classList.remove("active"));
+        
+        // Add active class to target page and corresponding link
+        pages.forEach(page => {
+          if (page.dataset.page === targetPage) {
+            page.classList.add("active");
+            console.log('Activated page:', targetPage);
+          }
+        });
+        
+        navigationLinks.forEach(link => {
+          if (link.innerHTML.toLowerCase() === targetPage) {
+            link.classList.add("active");
+            console.log('Activated link:', link.innerHTML);
+          }
+        });
+        
+        window.scrollTo(0, 0);
+      }
+
+      // Add click event to all nav links
+      navigationLinks.forEach(function(link, index) {
+        link.addEventListener("click", function() {
+          const targetPage = this.innerHTML.toLowerCase();
+          console.log('Clicked link:', targetPage);
+          switchPage(targetPage);
+        });
+        console.log('Added listener to:', link.innerHTML);
+      });
+      
+      console.log('Navbar setup complete!');
+    });
+  </script>
 
   <!-- Include EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
