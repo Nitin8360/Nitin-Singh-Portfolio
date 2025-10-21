@@ -409,7 +409,7 @@ main {
   inset: 0;
   display: grid;
   place-items: center;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.927), rgba(0, 0, 0, 0.905));
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.952), rgba(0, 0, 0, 0.947));
   z-index: 99999;
   transition: opacity 600ms ease, visibility 400ms ease;
   opacity: 1;
