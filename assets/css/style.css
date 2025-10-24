@@ -8,6 +8,129 @@
  */
 
 
+
+/* Download resume button/link styling */
+.download-resume {
+  display: inline-block;
+  background: linear-gradient(90deg, var(--orange-yellow-crayola), var(--vegas-gold));
+  color: var(--smoky-black);
+  font-weight: var(--fw-600);
+  padding: 10px 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px hsla(45, 100%, 40%, 0.12), inset 0 -2px 0 rgba(0,0,0,0.06);
+  transition: transform 220ms var(--transition-1), box-shadow 220ms var(--transition-1), opacity 220ms var(--transition-1);
+  text-decoration: none;
+  font-size: var(--fs-6);
+  border: 1px solid rgba(255,255,255,0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.download-resume::after {
+  /* subtle animated shimmer */
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -30%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.0) 100%);
+  transform: rotate(25deg) translateX(-120%);
+  transition: transform 0.9s cubic-bezier(.22,.9,.35,1);
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.download-resume:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 18px 50px hsla(45, 100%, 40%, 0.12), inset 0 -3px 0 rgba(0,0,0,0.06);
+}
+
+.download-resume:hover::after {
+  transform: rotate(25deg) translateX(220%);
+}
+
+.download-resume:focus {
+  outline: 3px solid rgba(255, 193, 7, 0.14);
+  outline-offset: 3px;
+}
+
+/* small pulse glow to draw attention on larger screens */
+@media (min-width: 580px) {
+  .download-resume {
+    animation: resumePulse 6s ease-in-out infinite;
+  }
+
+  @keyframes resumePulse {
+    0% { box-shadow: 0 10px 30px rgba(255,193,7,0.06); }
+    50% { box-shadow: 0 24px 60px rgba(255,193,7,0.10); }
+    100% { box-shadow: 0 10px 30px rgba(255,193,7,0.06); }
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .download-resume, .download-resume::after { animation: none; transition: none; }
+  .download-resume::after { display: none; }
+}
+
+/* --- Flip animation styles --- */
+.download-resume {
+  /* provide perspective for 3D flip */
+  -webkit-perspective: 900px;
+  perspective: 900px;
+}
+
+.download-resume .flip {
+  display: inline-block;
+  transform-style: preserve-3d;
+  transition: transform 650ms cubic-bezier(.2,1,.3,1);
+  position: relative;
+  /* ensure the flipping content fills the anchor */
+  padding: 0; /* padding is managed by anchor */
+}
+
+.download-resume .front,
+.download-resume .back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  position: relative;
+  color: inherit;
+  font-weight: inherit;
+  padding: 10px 18px; /* mirror anchor padding */
+  border-radius: inherit;
+}
+
+.download-resume .back {
+  /* place back face behind front and pre-rotate so it reads correctly after flip */
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  color: var(--smoky-black);
+  opacity: 0.98;
+}
+
+.download-resume:hover .flip,
+.download-resume:focus .flip {
+  transform: rotateY(180deg);
+}
+
+/* small visual difference on back face */
+.download-resume .back {
+  background: linear-gradient(90deg, var(--orange-yellow-crayola), var(--vegas-gold));
+}
+
+/* keep shimmer above faces */
+.download-resume::after { z-index: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .download-resume .flip { transition: none; }
+}
 /*-----------------------------------*\
   #CURSOR EFFECT
 \*-----------------------------------*/
