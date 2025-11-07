@@ -876,7 +876,9 @@ body { background: var(--smoky-black); }
 
 .sidebar,
 article {
-  /* background: var(--eerie-black-2); */
+  background: rgba(28, 28, 28, 0.514);
+   -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
   border: 1px solid var(--jet);
   border-radius: 20px;
   padding: 15px;
@@ -1337,7 +1339,7 @@ main {
 .about .article-title { margin-bottom: 15px; }
 
 .about-text {
-  color: var(--light-gray);
+  color: rgb(143, 143, 143);
   font-size: var(--fs-6);
   font-weight: var(--fw-300);
   line-height: 1.6;
@@ -1388,7 +1390,7 @@ main {
 .service-item-title { margin-bottom: 7px; }
 
 .service-item-text {
-  color: var(--light-gray);
+  color: rgb(143, 143, 143);
   font-size: var(--fs-6);
   font-weight: var(--fw-3);
   line-height: 1.6;
