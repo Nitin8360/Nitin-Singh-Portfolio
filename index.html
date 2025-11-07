@@ -28,27 +28,35 @@
 <body>
 
   <!--
+    - #ANIMATED BACKGROUND CANVAS
+  -->
+  <canvas id="animated-bg"></canvas>
+  
+  <!--
+    - #FLOATING SHAPES ANIMATION
+  -->
+  <div class="floating-shapes">
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+  </div>
+
+  <!--
+    - #PARTICLE SYSTEM
+  -->
+  <div class="particle-system" id="particles"></div>
+
+  <!--
     - #CURSOR EFFECT
   -->
   <div class="cursor-glow"></div>
-  <!-- Preloader (animated circle from Uiverse) -->
-  <div id="preloader" class="preloader" aria-hidden="false">
-    <div class="loader">
-      <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
-        <defs>
-          <mask id="clipping">
-            <polygon points="0,0 100,0 100,100 0,100" fill="black"></polygon>
-            <polygon points="25,25 75,25 50,75" fill="white"></polygon>
-            <polygon points="50,25 75,75 25,75" fill="white"></polygon>
-            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-          </mask>
-        </defs>
-      </svg>
-      <div class="box" aria-hidden="true"></div>
-    </div>
+  
+  <!-- Modern Preloader -->
+  <div id="preloader" class="preloader glass-card" aria-hidden="false">
+    <div class="pulse-loader"></div>
+    <p class="typing-effect gradient-text">Loading Portfolio...</p>
   </div>
 
   <!--
@@ -61,21 +69,21 @@
       - #SIDEBAR
     -->
 
-    <aside class="sidebar" data-sidebar>
+    <aside class="sidebar glass-card hover-lift" data-sidebar>
 
       <div class="sidebar-info">
 
-        <figure class="avatar-box">
-          <img src="./assets/images/my-avatar.png" alt="#" width="10">
+        <figure class="avatar-box hover-glow">
+          <img src="./assets/images/my-avatar.png" alt="Nitin Singh Avatar" width="10">
         </figure>
 
         <div class="info-content">
-          <h1 class="name" title="Nitin Singh">Nitin Singh</h1>
+          <h1 class="name gradient-text typing-effect" title="Nitin Singh">Nitin Singh</h1>
 
-          <p class="title">Web developer</p>
+          <p class="title morph-btn">Web Developer</p>
         </div>
 
-        <button class="info_more-btn" data-sidebar-btn>
+        <button class="info_more-btn morph-btn hover-glow" data-sidebar-btn>
           <span>Show Contacts</span>
 
           <ion-icon name="chevron-down"></ion-icon>
@@ -231,19 +239,19 @@
         - #ABOUT
       -->
 
-      <article class="about  active" data-page="about">
+      <article class="about glass-card hover-lift active" data-page="about">
 
         <header>
-          <h2 class="h2 article-title">About me</h2>
+          <h2 class="h2 article-title gradient-text">About me</h2>
         </header>
 
         <section class="about-text">
-          <p>
+          <p class="hover-glow">
             I'm a passionate Web Developer from Your Location, with expertise in creating modern, responsive web applications.
             I enjoy turning complex problems into simple, beautiful and intuitive digital solutions.
           </p>
 
-          <p>
+          <p class="hover-glow">
             My goal is to build websites and applications that are not only functional and user-friendly but also visually appealing.
             I bring a personal touch to every project, ensuring that each solution is tailored to meet specific needs and objectives.
             I have experience working with various technologies and frameworks to deliver high-quality digital experiences.
@@ -257,70 +265,69 @@
 
         <section class="service">
 
-          <h3 class="h3 service-title">What i'm doing</h3>
+          <h3 class="h3 service-title gradient-text">What I'm Doing</h3>
 
           <ul class="service-list">
 
-            <li class="service-item">
+            <li class="service-item glass-card hover-lift hover-glow" style="--index: 1">
 
               <div class="service-icon-box">
-                <img src="./assets/images/icon-design.svg
-                " alt="design icon" width="40">
+                <img src="./assets/images/icon-design.svg" alt="design icon" width="40">
               </div>
 
               <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web design</h4>
+                <h4 class="h4 service-item-title gradient-text">Web Design</h4>
 
                 <p class="service-item-text">
-                  The most modern and high-quality design made at a professional level.
+                  The most modern and high-quality design made at a professional level with cutting-edge aesthetics.
                 </p>
               </div>
 
             </li>
 
-            <li class="service-item">
+            <li class="service-item glass-card hover-lift hover-glow" style="--index: 2">
 
               <div class="service-icon-box">
                 <img src="./assets/images/icon-dev.svg" alt="Web development icon" width="40">
               </div>
 
               <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web development</h4>
+                <h4 class="h4 service-item-title gradient-text">Web Development</h4>
 
                 <p class="service-item-text">
-                  High-quality development of sites at the professional level.
+                  High-quality development of sites at the professional level with modern frameworks and technologies.
                 </p>
               </div>
 
             </li>
 
-            <li class="service-item">
+            <li class="service-item glass-card hover-lift hover-glow" style="--index: 3">
 
               <div class="service-icon-box">
                 <img src="./assets/images/icon-app.svg" alt="mobile app icon" width="40">
               </div>
 
               <div class="service-content-box">
-                <h4 class="h4 service-item-title">Mobile apps</h4>
+                <h4 class="h4 service-item-title gradient-text">Mobile Apps</h4>
 
                 <p class="service-item-text">
-                  Professional development of applications for iOS and Android.
+                  Professional development of applications for iOS and Android with native performance.
                 </p>
               </div>
 
             </li>
 
-            <li class="service-item">
+            <li class="service-item glass-card hover-lift hover-glow" style="--index: 4">
 
               <div class="service-icon-box">
                 <img src="./assets/images/icon-photo.svg" alt="camera icon" width="40">
               </div>
 
               <div class="service-content-box">
-                <h4 class="h4 service-item-title">Photography</h4>
+                <h4 class="h4 service-item-title gradient-text">Photography</h4>
 
                 <p class="service-item-text">
-                  I make high-quality photos of any category at a professional level.
+                  I create high-quality photos of any category at a professional level with artistic vision.
                 </p>
               </div>
 
@@ -391,10 +398,10 @@
         - #RESUME
       -->
 
-      <article class="resume" data-page="resume">
+      <article class="resume glass-card hover-lift" data-page="resume">
 
         <header>
-          <h2 class="h2 article-title">Resume</h2>
+          <h2 class="h2 article-title gradient-text">Resume</h2>
         </header>
 
         <section class="timeline">
@@ -951,6 +958,7 @@
     - custom js link
   -->
   <script src="./assets/js/firebase-config.js"></script>
+  <script src="./assets/js/animated-bg.js"></script>
   
   <!-- Backup Firebase Manager for Portfolio Page -->
   <script>
